@@ -1,0 +1,46 @@
+app:
+    client-url: ${CLIENT_URL}
+    oauth2:
+        redirectUri: "${app.client-url}/login/oauth2/callback/{registrationId}"
+    mihoyo:
+        im-endpoint: "https://api-os-takumi.mihoyo.com"
+        endpoint: "https://hk4e-api-os.mihoyo.com"
+
+spring:
+    datasource:
+        url: ${JDBC_DATABASE_URL}
+        username: ${JDBC_DATABASE_USERNAME}
+        password: ${JDBC_DATABASE_PASSWORD}
+    security:
+        oauth2:
+            client:
+                registration:
+                    facebook:
+                        client-id: 3643805775683535
+                        client-secret: ${FACEBOOK_SECRET}
+                        redirect-uri: ${app.oauth2.redirectUri}
+                    google:
+                        client-id: 431139673562-0676kbn3tpab8j6dml7nbrhvhj6e0432.apps.googleusercontent.com
+                        client-secret: ${GOOGLE_SECRET}
+                        redirect-uri: ${app.oauth2.redirectUri}
+                    discord:
+                        client-id: 777998715255259167
+                        client-secret: ${DISCORD_SECRET}
+                        redirect-uri: ${app.oauth2.redirectUri}
+                        authorizationGrantType: authorization_code
+                        scope:
+                            - identify
+                            - email
+                        provider: Discord
+                provider:
+                    Discord:
+                        authorizationUri: https://discord.com/api/v8/oauth2/authorize
+                        tokenUri: https://discord.com/api/v8/oauth2/token
+                        userInfoUri: https://discord.com/api/v8/users/@me
+                        usernameAttribute: username
+
+logging:
+    level:
+        root: INFO
+        org.springframework.web: ERROR
+        com.uf: INFO
