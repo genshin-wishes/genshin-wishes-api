@@ -36,8 +36,8 @@ public class UserService {
     public void linkMihoyoUser(User user, String authkey) throws ApiError {
         MihoyoUserDTO mihoyoUser = mihoyoImRestClient.getUserInfo(authkey);
 
-        user.setMihoyoUid(mihoyoUser.getMihoyoUid());
-        user.setMihoyoUsername(mihoyoUser.getMihoyoUsername());
+        user.setMihoyoUid(mihoyoUser.getUser_id());
+        user.setMihoyoUsername(mihoyoUser.getNickname());
 
         userRepository.save(user);
     }

@@ -5,11 +5,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public abstract class MihoyoRetDTO {
-    private String message;
-    private Integer retcode;
+public class MihoyoWishDataDTO {
+    private List<MihoyoWishLogDTO> list;
 }

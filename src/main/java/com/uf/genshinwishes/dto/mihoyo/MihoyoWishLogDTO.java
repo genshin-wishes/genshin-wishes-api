@@ -15,5 +15,5 @@ public class MihoyoWishLogDTO {
     private String uid;
     private String item_id;
     private Integer gacha_type;
-    private Date time;
+    private String time;
 }

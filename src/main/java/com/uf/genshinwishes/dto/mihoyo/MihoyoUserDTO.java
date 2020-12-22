@@ -1,15 +1,13 @@
 package com.uf.genshinwishes.dto.mihoyo;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode
 public class MihoyoUserDTO {
-    private String mihoyoUid;
-    private String mihoyoUsername;
+    private String user_id;
+    private String nickname;
 }
