@@ -4,9 +4,14 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.FetchMode;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.NotFoundAction;
 
 import javax.persistence.*;
 import java.util.Date;
+import java.util.Optional;
 
 @Getter
 @Setter
@@ -18,6 +23,9 @@ public class Wish {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
+    private Long index;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
@@ -28,8 +36,9 @@ public class Wish {
     @Column(nullable = false)
     private Integer gachaType;
 
-    @ManyToOne()
-    @JoinColumn(name = "item_id", nullable = false)
+    @ManyToOne
+    @JoinColumn(name = "item_id")
+    @NotFound(action = NotFoundAction.IGNORE)
     private Item item;
 
     @Column(nullable = false)

@@ -5,6 +5,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
+import com.uf.genshinwishes.dto.WishFilterDTO;
 import com.uf.genshinwishes.dto.mapper.WishMapper;
 import com.uf.genshinwishes.dto.mihoyo.MihoyoUserDTO;
 import com.uf.genshinwishes.exception.ApiError;
@@ -12,12 +13,14 @@ import com.uf.genshinwishes.exception.ErrorType;
 import com.uf.genshinwishes.model.BannerType;
 import com.uf.genshinwishes.model.User;
 import com.uf.genshinwishes.model.Wish;
-import com.uf.genshinwishes.repository.WishRepository;
+import com.uf.genshinwishes.repository.wish.WishRepository;
+import com.uf.genshinwishes.repository.wish.WishSpecification;
 import com.uf.genshinwishes.service.mihoyo.MihoyoImRestClient;
 import com.uf.genshinwishes.service.mihoyo.MihoyoRestClient;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -44,22 +47,30 @@ public class WishService {
         if (!user.getMihoyoUid().equals(mihoyoUser.getUser_id()))
             throw new ApiError(ErrorType.MIHOYO_UID_DIFFERENT);
 
-        Optional<Date> ifLastWishDate = wishRepository.findFirstByUserOrderByTimeDescIdDesc(user).map(Wish::getTime);
-
+        Optional<Wish> ifLastWish = wishRepository.findFirstByUserOrderByTimeDescIdDesc(user);
+        Optional<Date> ifLastWishDate = ifLastWish.map(Wish::getTime);
+        Map<BannerType, Long> oldCounts = countAllByUser(user);
         Map<BannerType, Integer> counts = Maps.newHashMap();
 
         Arrays.stream(BannerType.values()).forEach(type -> {
             // Attach user to wishes
-            List<Wish> wishes = paginateWishesOlderThanDate(authkey, type, ifLastWishDate).stream().map(wish -> {
+            List<Wish> wishes = paginateWishesOlderThanDate(authkey, type, ifLastWishDate);
+
+            // Most recent = highest ID
+            Collections.reverse(wishes);
+
+            wishes = wishes.stream().map((wish) -> {
+                long index = oldCounts.getOrDefault(type, 0l) + 1;
+
                 wish.setUser(user);
+                wish.setIndex(index);
+
+                oldCounts.put(type, index);
 
                 return wish;
             }).collect(Collectors.toList());
 
             counts.put(type, wishes.size());
-
-            // Most recent = highest ID
-            Collections.reverse(wishes);
 
             wishRepository.saveAll(wishes);
         });
@@ -113,19 +124,18 @@ public class WishService {
             .collect(Collectors.toList());
     }
 
-    public List<Wish> findByUserAndBannerType(User user, BannerType bannerType, Integer page) {
-        return this.wishRepository.findAllByUserAndGachaTypeOrderByIdDesc(
-            PageRequest.of(page, 10),
-            user,
-            bannerType.getType())
-            .getContent();
+    public List<Wish> findByUserAndBannerType(User user, BannerType bannerType, Integer page, WishFilterDTO filters) {
+        return this.wishRepository.findAll(
+            new WishSpecification(user, bannerType, filters),
+            PageRequest.of(page, 10, Sort.by(Sort.Direction.DESC, "id"))
+        ).getContent();
     }
 
-    public Integer countAllByUserAndGachaType(User user, BannerType bannerType) {
-        return this.wishRepository.countAllByUserAndGachaType(user, bannerType.getType());
+    public Long countAllByUserAndGachaType(User user, BannerType bannerType, WishFilterDTO filters) {
+        return this.wishRepository.count(new WishSpecification(user, bannerType, filters));
     }
 
-    public Map<BannerType, Integer> countAllByUser(User user) {
+    public Map<BannerType, Long> countAllByUser(User user) {
         return Arrays.stream(BannerType.values())
             .collect(Collectors.toMap(
                 (banner) -> banner,
