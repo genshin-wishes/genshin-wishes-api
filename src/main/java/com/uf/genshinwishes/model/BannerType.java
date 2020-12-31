@@ -10,6 +10,7 @@ import java.util.Optional;
 @Getter
 @AllArgsConstructor
 public enum BannerType {
+    ALL(-1),
     NOVICE(100),
     PERMANENT(200),
     CHARACTER_EVENT(301),

@@ -50,14 +50,16 @@ public class WishController {
                                     @RequestParam Optional<Date> startDate,
                                     @RequestParam Optional<Date> endDate
     ) {
-        return wishService.countAllByUserAndGachaType(user, bannerType, new WishFilterDTO(
+        WishFilterDTO filters = new WishFilterDTO(
             freeText.orElse(null),
             fr.orElse(null),
             rank.orElse(null),
             itemType.orElse(null),
             startDate.orElse(null),
             endDate.orElse(null)
-        ));
+        );
+
+        return wishService.countAllByUserAndGachaType(user, bannerType, filters);
     }
 
     @GetMapping("/count")

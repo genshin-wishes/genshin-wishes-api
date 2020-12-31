@@ -127,7 +127,7 @@ public class WishService {
     public List<Wish> findByUserAndBannerType(User user, BannerType bannerType, Integer page, WishFilterDTO filters) {
         return this.wishRepository.findAll(
             new WishSpecification(user, bannerType, filters),
-            PageRequest.of(page, 10, Sort.by(Sort.Direction.DESC, "id"))
+            PageRequest.of(page, 10, Sort.by(Sort.Direction.DESC, "time", "id"))
         ).getContent();
     }
 

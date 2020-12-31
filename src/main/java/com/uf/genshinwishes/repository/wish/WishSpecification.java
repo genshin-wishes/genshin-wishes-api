@@ -33,7 +33,8 @@ public class WishSpecification implements Specification<Wish> {
 
         // Mandatory
         predicates.add(builder.equal(root.<User>get("user"), user));
-        predicates.add(builder.equal(root.<Integer>get("gachaType"), bannerType.getType()));
+        if (!BannerType.ALL.equals(bannerType))
+            predicates.add(builder.equal(root.<Integer>get("gachaType"), bannerType.getType()));
 
         // Optional
         if (filters != null) {
@@ -92,7 +93,7 @@ public class WishSpecification implements Specification<Wish> {
             );
 
         if (filters.getEndDate() != null)
-            endPredicate = builder.lessThanOrEqualTo(
+            endPredicate = builder.lessThan(
                 root.<Date>get("time"),
                 filters.getEndDate()
             );
