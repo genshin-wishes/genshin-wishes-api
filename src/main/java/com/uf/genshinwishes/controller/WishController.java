@@ -27,14 +27,14 @@ public class WishController {
                                 @RequestParam("page") Integer page,
                                 @RequestParam Optional<String> freeText,
                                 @RequestParam Optional<Boolean> fr,
-                                @RequestParam Optional<List<Integer>> rank,
+                                @RequestParam Optional<List<Integer>> ranks,
                                 @RequestParam Optional<ItemType> itemType,
                                 @RequestParam Optional<Date> startDate,
                                 @RequestParam Optional<Date> endDate) {
         return wishService.findByUserAndBannerType(user, bannerType, page, new WishFilterDTO(
             freeText.orElse(null),
             fr.orElse(null),
-            rank.orElse(null),
+            ranks.orElse(null),
             itemType.orElse(null),
             startDate.orElse(null),
             endDate.orElse(null)
@@ -45,7 +45,7 @@ public class WishController {
     public Long countWishesByBanner(User user, @PathVariable("bannerType") BannerType bannerType,
                                     @RequestParam Optional<String> freeText,
                                     @RequestParam Optional<Boolean> fr,
-                                    @RequestParam Optional<List<Integer>> rank,
+                                    @RequestParam Optional<List<Integer>> ranks,
                                     @RequestParam Optional<ItemType> itemType,
                                     @RequestParam Optional<Date> startDate,
                                     @RequestParam Optional<Date> endDate
@@ -53,7 +53,7 @@ public class WishController {
         WishFilterDTO filters = new WishFilterDTO(
             freeText.orElse(null),
             fr.orElse(null),
-            rank.orElse(null),
+            ranks.orElse(null),
             itemType.orElse(null),
             startDate.orElse(null),
             endDate.orElse(null)
