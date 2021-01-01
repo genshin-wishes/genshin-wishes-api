@@ -6,8 +6,10 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.FetchMode;
 import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.JoinFormula;
 import org.hibernate.annotations.NotFound;
 import org.hibernate.annotations.NotFoundAction;
+import org.springframework.context.annotation.Lazy;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -43,4 +45,9 @@ public class Wish {
 
     @Column(nullable = false)
     private Date time;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinFormula(value = "(SELECT event.id FROM events event WHERE time BETWEEN event.start_date AND event.end_date)")
+    @NotFound(action = NotFoundAction.IGNORE)
+    private Event event;
 }

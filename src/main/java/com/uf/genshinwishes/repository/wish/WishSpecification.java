@@ -64,9 +64,9 @@ public class WishSpecification implements Specification<Wish> {
     }
 
     private Predicate getRankPredicate(Root<Wish> root, CriteriaBuilder builder) {
-        if (filters.getRank() != null) {
+        if (filters.getRanks() != null) {
             return root.<Item>get("item").<Integer>get("rankType").in(
-                filters.getRank()
+                filters.getRanks()
             );
         }
         return null;
@@ -83,31 +83,8 @@ public class WishSpecification implements Specification<Wish> {
     }
 
     private Predicate getDatePredicate(Root<Wish> root, CriteriaBuilder builder) {
-        Predicate startPredicate = null;
-        Predicate endPredicate = null;
-
-        if (filters.getStartDate() != null)
-            startPredicate = builder.greaterThanOrEqualTo(
-                root.<Date>get("time"),
-                filters.getStartDate()
-            );
-
-        if (filters.getEndDate() != null)
-            endPredicate = builder.lessThan(
-                root.<Date>get("time"),
-                filters.getEndDate()
-            );
-
-        if (filters.getStartDate() != null && filters.getEndDate() != null) {
-            return builder.and(startPredicate, endPredicate);
-        }
-
-        if (filters.getStartDate() != null) {
-            return startPredicate;
-        }
-
-        if (filters.getEndDate() != null) {
-            return endPredicate;
+        if(filters.getEvents() != null && !filters.getEvents().isEmpty()) {
+            return root.get("event").get("id").in(filters.getEvents());
         }
 
         return null;
