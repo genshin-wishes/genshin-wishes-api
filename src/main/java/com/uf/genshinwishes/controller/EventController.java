@@ -18,4 +18,9 @@ public class EventController {
         return eventRepository.findAllByOrderByStartDateDesc();
     }
 
+    @GetMapping("/latest")
+    public Event getLatestEvent() {
+        return eventRepository.findFirstByOrderByEndDateDesc();
+    }
+
 }

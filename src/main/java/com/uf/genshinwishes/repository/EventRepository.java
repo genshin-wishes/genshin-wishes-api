@@ -8,4 +8,6 @@ import java.util.List;
 public interface EventRepository extends PagingAndSortingRepository<Event, Long> {
 
     List<Event> findAllByOrderByStartDateDesc();
+
+    Event findFirstByOrderByEndDateDesc();
 }
