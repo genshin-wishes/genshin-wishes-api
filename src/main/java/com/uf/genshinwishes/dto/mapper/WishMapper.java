@@ -1,5 +1,6 @@
 package com.uf.genshinwishes.dto.mapper;
 
+import com.uf.genshinwishes.dto.WishDTO;
 import com.uf.genshinwishes.dto.mihoyo.MihoyoWishLogDTO;
 import com.uf.genshinwishes.model.Item;
 import com.uf.genshinwishes.model.Wish;
@@ -11,6 +12,20 @@ import java.util.Date;
 
 @Component
 public class WishMapper {
+
+    public WishDTO toDto(Wish wish) {
+        WishDTO wishDTO = new WishDTO();
+
+        wishDTO.setId(wish.getId());
+        wishDTO.setUid(wish.getUid());
+        wishDTO.setTime(wish.getTime());
+        wishDTO.setGachaType(wish.getGachaType());
+        wishDTO.setIndex(wish.getIndex());
+        wishDTO.setItem(wish.getItem());
+        wishDTO.setItemName(wish.getItemName());
+
+        return wishDTO;
+    }
 
     public Wish fromMihoyo(MihoyoWishLogDTO mihoyoWish) {
         Wish wish = new Wish();

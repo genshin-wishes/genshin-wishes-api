@@ -1,6 +1,7 @@
 package com.uf.genshinwishes.controller;
 
 import com.uf.genshinwishes.dto.ItemType;
+import com.uf.genshinwishes.dto.WishDTO;
 import com.uf.genshinwishes.dto.WishFilterDTO;
 import com.uf.genshinwishes.model.BannerType;
 import com.uf.genshinwishes.model.Event;
@@ -26,7 +27,7 @@ public class WishController {
     private WishService wishService;
 
     @GetMapping("/{bannerType}")
-    public List<Wish> getWishes(User user,
+    public List<WishDTO> getWishes(User user,
                                 @PathVariable("bannerType") BannerType bannerType,
                                 @RequestParam("page") Integer page,
                                 @RequestParam Optional<String> freeText,
@@ -73,7 +74,7 @@ public class WishController {
     }
 
     @GetMapping("/banners")
-    public Map<BannerType, Collection<Wish>> getBanners(User user) {
+    public Map<BannerType, Collection<WishDTO>> getBanners(User user) {
         return wishService.getBanners(user);
     }
 

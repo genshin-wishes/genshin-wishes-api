@@ -5,6 +5,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
+import com.uf.genshinwishes.dto.WishDTO;
 import com.uf.genshinwishes.dto.WishFilterDTO;
 import com.uf.genshinwishes.dto.mapper.WishMapper;
 import com.uf.genshinwishes.dto.mihoyo.MihoyoUserDTO;
@@ -100,11 +101,15 @@ public class WishService {
         });
     }
 
-    public Map<BannerType, Collection<Wish>> getBanners(User user) {
-        Multimap<BannerType, Wish> wishesByBanner = MultimapBuilder.hashKeys(BannerType.values().length).arrayListValues().build();
+    public Map<BannerType, Collection<WishDTO>> getBanners(User user) {
+        Multimap<BannerType, WishDTO> wishesByBanner = MultimapBuilder.hashKeys(BannerType.values().length).arrayListValues().build();
 
         Arrays.stream(BannerType.values())
-            .forEach(type -> wishesByBanner.putAll(type, wishRepository.findFirst100ByUserAndGachaTypeOrderByIdDesc(user, type.getType())));
+            .forEach(type -> {
+                List<Wish> wishes = wishRepository.findFirst100ByUserAndGachaTypeOrderByIdDesc(user, type.getType());
+
+                wishesByBanner.putAll(type, wishes.stream().map(wishMapper::toDto).collect(Collectors.toList()));
+            });
 
         return wishesByBanner.asMap();
     }
@@ -145,11 +150,11 @@ public class WishService {
             .collect(Collectors.toList());
     }
 
-    public List<Wish> findByUserAndBannerType(User user, BannerType bannerType, Integer page, WishFilterDTO filters) {
+    public List<WishDTO> findByUserAndBannerType(User user, BannerType bannerType, Integer page, WishFilterDTO filters) {
         return this.wishRepository.findAll(
             new WishSpecification(user, bannerType, filters),
             PageRequest.of(page, 10, Sort.by(Sort.Direction.DESC, "time", "id"))
-        ).getContent();
+        ).getContent().stream().map(wishMapper::toDto).collect(Collectors.toList());
     }
 
     public Long countAllByUserAndGachaType(User user, BannerType bannerType, WishFilterDTO filters) {
