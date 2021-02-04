@@ -14,6 +14,7 @@ import java.util.Date;
 public class MihoyoWishLogDTO {
     private String uid;
     private String item_id;
+    private String name;
     private Integer gacha_type;
     private String time;
 }

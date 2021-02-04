@@ -43,6 +43,9 @@ public class Wish {
     @NotFound(action = NotFoundAction.IGNORE)
     private Item item;
 
+    @Column
+    private String itemName;
+
     @Column(nullable = false)
     private Date time;
 

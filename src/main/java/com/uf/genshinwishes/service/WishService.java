@@ -11,8 +11,10 @@ import com.uf.genshinwishes.dto.mihoyo.MihoyoUserDTO;
 import com.uf.genshinwishes.exception.ApiError;
 import com.uf.genshinwishes.exception.ErrorType;
 import com.uf.genshinwishes.model.BannerType;
+import com.uf.genshinwishes.model.Item;
 import com.uf.genshinwishes.model.User;
 import com.uf.genshinwishes.model.Wish;
+import com.uf.genshinwishes.repository.ItemRepository;
 import com.uf.genshinwishes.repository.wish.WishRepository;
 import com.uf.genshinwishes.repository.wish.WishSpecification;
 import com.uf.genshinwishes.service.mihoyo.MihoyoImRestClient;
@@ -32,6 +34,7 @@ import java.util.stream.Collectors;
 public class WishService {
 
     private WishRepository wishRepository;
+    private ItemRepository itemRepository;
     private MihoyoRestClient mihoyoRestClient;
     private MihoyoImRestClient mihoyoImRestClient;
     private WishMapper wishMapper;
@@ -72,15 +75,33 @@ public class WishService {
 
             counts.put(type, wishes.size());
 
+            supplyItemId(wishes);
+
             wishRepository.saveAll(wishes);
         });
 
         return counts;
     }
 
+    private void supplyItemId(List<Wish> wishes) {
+        List<Item> items = itemRepository.findAll();
+
+        wishes.forEach(wish -> {
+            Item item = items.stream()
+                .filter(i ->
+                    i.getName().equals(wish.getItemName())
+                    ||
+                    i.getNameFr().equals(wish.getItemName())
+                )
+                .findFirst()
+                .orElse(null);
+
+            wish.setItem(item);
+        });
+    }
+
     public Map<BannerType, Collection<Wish>> getBanners(User user) {
         Multimap<BannerType, Wish> wishesByBanner = MultimapBuilder.hashKeys(BannerType.values().length).arrayListValues().build();
-        ;
 
         Arrays.stream(BannerType.values())
             .forEach(type -> wishesByBanner.putAll(type, wishRepository.findFirst100ByUserAndGachaTypeOrderByIdDesc(user, type.getType())));

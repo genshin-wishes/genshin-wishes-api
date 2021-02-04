@@ -14,11 +14,15 @@ public class WishMapper {
 
     public Wish fromMihoyo(MihoyoWishLogDTO mihoyoWish) {
         Wish wish = new Wish();
-        Item item = new Item();
-        item.setItemId(Long.parseLong(mihoyoWish.getItem_id()));
+
+        if(mihoyoWish.getItem_id() != null && !"".equals(mihoyoWish.getItem_id())) {
+            Item item = new Item();
+            item.setItemId(Long.parseLong(mihoyoWish.getItem_id()));
+            wish.setItem(item);
+        }
 
         wish.setUid(mihoyoWish.getUid());
-        wish.setItem(item);
+        wish.setItemName(mihoyoWish.getName());
         wish.setGachaType(mihoyoWish.getGacha_type());
         wish.setTime(
             Date.from(
