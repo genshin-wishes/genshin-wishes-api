@@ -56,7 +56,7 @@ public class WishService {
         Map<BannerType, Long> oldCounts = countAllByUser(user);
         Map<BannerType, Integer> counts = Maps.newHashMap();
 
-        Arrays.stream(BannerType.values()).forEach(type -> {
+        Arrays.stream(BannerType.values()).filter(banner -> banner.getType() > 0).forEach(type -> {
             // Attach user to wishes
             List<Wish> wishes = paginateWishesOlderThanDate(authkey, type, ifLastWishDate);
 
@@ -89,11 +89,7 @@ public class WishService {
 
         wishes.forEach(wish -> {
             Item item = items.stream()
-                .filter(i ->
-                    i.getName().equals(wish.getItemName())
-                    ||
-                    i.getNameFr().equals(wish.getItemName())
-                )
+                .filter(i -> i.getName().equals(wish.getItemName()))
                 .findFirst()
                 .orElse(null);
 

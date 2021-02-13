@@ -38,7 +38,7 @@ public class MihoyoRestClient {
             .queryParam("authkey_ver", 1)
             .queryParam("sign_type", 2)
             .queryParam("auth_appid", "webview_gacha")
-            .queryParam("lang", "fr")
+            .queryParam("lang", "en")
             .queryParam("size", 20)
             .queryParam("page", page);
 

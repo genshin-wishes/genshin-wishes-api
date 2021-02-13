@@ -43,6 +43,6 @@ spring:
 
 logging:
     level:
-        root: INFO
+        root: ERROR
         org.springframework.web: ERROR
-        com.uf: INFO
+        com.uf: ERROR
