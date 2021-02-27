@@ -35,10 +35,8 @@ public class Event {
     @Lob
     @Column
     @Type(type="org.hibernate.type.BinaryType")
-    private byte[] characterBanner;
+    private byte[] bannerImage;
 
-    @Lob
-    @Column
-    @Type(type="org.hibernate.type.BinaryType")
-    private byte[] weaponBanner;
+    @Column(nullable = false)
+    private Integer gachaType;
 }

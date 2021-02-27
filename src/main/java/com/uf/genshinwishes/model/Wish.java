@@ -50,7 +50,7 @@ public class Wish {
     private Date time;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinFormula(value = "(SELECT event.id FROM events event WHERE time BETWEEN event.start_date AND event.end_date)")
+    @JoinFormula(value = "(SELECT event.id FROM events event WHERE gacha_type = event.gacha_type AND time BETWEEN event.start_date AND event.end_date)")
     @NotFound(action = NotFoundAction.IGNORE)
     private Event event;
 }

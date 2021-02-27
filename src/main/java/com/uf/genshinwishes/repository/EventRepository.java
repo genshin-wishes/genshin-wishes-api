@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface EventRepository extends PagingAndSortingRepository<Event, Long> {
 
-    List<Event> findAllByOrderByStartDateDesc();
+    List<Event> findAllByGachaTypeOrderByStartDateDesc(Integer gachaType);
 
-    Event findFirstByOrderByEndDateDesc();
+    Event findFirstByGachaTypeOrderByEndDateDesc(Integer gachaType);
 }

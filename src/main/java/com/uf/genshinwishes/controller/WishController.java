@@ -13,10 +13,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @RestController
 @RequestMapping("/wishes")
@@ -34,13 +33,17 @@ public class WishController {
                                 @RequestParam Optional<Boolean> fr,
                                 @RequestParam Optional<List<Integer>> ranks,
                                 @RequestParam Optional<ItemType> itemType,
-                                @RequestParam Optional<List<Long>> events) {
+                                @RequestParam Optional<List<Long>> characterEvents,
+                                @RequestParam Optional<List<Long>> weaponEvents) {
         return wishService.findByUserAndBannerType(user, bannerType, page, new WishFilterDTO(
             freeText.orElse(null),
             fr.orElse(null),
             ranks.orElse(null),
             itemType.orElse(null),
-            events.orElse(null)
+            Stream.concat(
+                characterEvents.orElse(Collections.emptyList()).stream(),
+                weaponEvents.orElse(Collections.emptyList()).stream()
+            ).collect(Collectors.toList())
         ));
     }
 
@@ -50,14 +53,18 @@ public class WishController {
                                     @RequestParam Optional<Boolean> fr,
                                     @RequestParam Optional<List<Integer>> ranks,
                                     @RequestParam Optional<ItemType> itemType,
-                                    @RequestParam Optional<List<Long>> events
+                                    @RequestParam Optional<List<Long>> characterEvents,
+                                    @RequestParam Optional<List<Long>> weaponEvents
     ) {
         WishFilterDTO filters = new WishFilterDTO(
             freeText.orElse(null),
             fr.orElse(null),
             ranks.orElse(null),
             itemType.orElse(null),
-            events.orElse(null)
+            Stream.concat(
+                characterEvents.orElse(Collections.emptyList()).stream(),
+                weaponEvents.orElse(Collections.emptyList()).stream()
+            ).collect(Collectors.toList())
         );
 
         return wishService.countAllByUserAndGachaType(user, bannerType, filters);
