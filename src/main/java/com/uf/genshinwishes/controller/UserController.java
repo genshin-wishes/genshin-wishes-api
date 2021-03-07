@@ -1,8 +1,9 @@
 package com.uf.genshinwishes.controller;
 
+import com.uf.genshinwishes.dto.UserDTO;
+import com.uf.genshinwishes.dto.mapper.UserMapper;
 import com.uf.genshinwishes.model.User;
 import com.uf.genshinwishes.service.UserService;
-import com.uf.genshinwishes.service.WishService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,24 +12,26 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
     @Autowired
     private UserService userService;
+    @Autowired
+    private UserMapper userMapper;
 
     @GetMapping("")
-    public User isLoggedIn(User user) {
-        return user;
+    public UserDTO isLoggedIn(User user) {
+        return userMapper.toDto(user);
     }
 
     @GetMapping("/link")
-    public User linkMihoyoAccount(User user, @RequestParam("authkey") String authkey) {
-        userService.linkMihoyoUser(user, authkey);
+    public UserDTO linkMihoyoAccount(User user, @RequestParam("authkey") String authkey) {
+        userService.verifyUserIsUnlinkedAndLinkToMihoyo(user, authkey);
 
-        return user;
+        return userMapper.toDto(user);
     }
 
-    @PostMapping ("/linkNew")
-    public User linkNewMihoyoAccountAndDeleteOldWishes(User user, @RequestBody() String authkey) {
+    @PostMapping("/linkNew")
+    public UserDTO linkNewMihoyoAccountAndDeleteOldWishes(User user, @RequestBody() String authkey) {
         userService.linkNewMihoyoAccountAndDeleteOldWishes(user, authkey);
 
-        return user;
+        return userMapper.toDto(user);
     }
 
 

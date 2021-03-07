@@ -16,6 +16,7 @@ import com.uf.genshinwishes.model.Item;
 import com.uf.genshinwishes.model.User;
 import com.uf.genshinwishes.model.Wish;
 import com.uf.genshinwishes.repository.ItemRepository;
+import com.uf.genshinwishes.repository.UserRepository;
 import com.uf.genshinwishes.repository.wish.WishRepository;
 import com.uf.genshinwishes.repository.wish.WishSpecification;
 import com.uf.genshinwishes.service.mihoyo.MihoyoImRestClient;
@@ -24,8 +25,11 @@ import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
 import javax.transaction.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -34,13 +38,15 @@ import java.util.stream.Collectors;
 @AllArgsConstructor(onConstructor = @__(@Autowired))
 public class WishService {
 
+    private UserRepository userRepository;
     private WishRepository wishRepository;
     private ItemRepository itemRepository;
     private MihoyoRestClient mihoyoRestClient;
     private MihoyoImRestClient mihoyoImRestClient;
     private WishMapper wishMapper;
+    private EntityManager em;
 
-    @Transactional
+    @Transactional()
     public Map<BannerType, Integer> importWishes(User user, String authkey) {
         if (Strings.isNullOrEmpty(user.getMihoyoUid())) {
             throw new ApiError(ErrorType.NO_MIHOYO_LINKED);
@@ -56,10 +62,13 @@ public class WishService {
         Map<BannerType, Long> oldCounts = countAllByUser(user);
         Map<BannerType, Integer> counts = Maps.newHashMap();
 
+        em.lock(user, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
+
+        List<Wish> bannerWishes = Lists.newArrayList();
+
         Arrays.stream(BannerType.values()).filter(banner -> banner.getType() > 0).forEach(type -> {
             // Attach user to wishes
             List<Wish> wishes = paginateWishesOlderThanDate(authkey, type, ifLastWishDate);
-
             // Most recent = highest ID
             Collections.reverse(wishes);
 
@@ -78,11 +87,14 @@ public class WishService {
 
             supplyItemId(wishes);
 
-            wishRepository.saveAll(wishes);
+            bannerWishes.addAll(wishes);
         });
+
+        wishRepository.saveAll(bannerWishes);
 
         return counts;
     }
+
 
     private void supplyItemId(List<Wish> wishes) {
         List<Item> items = itemRepository.findAll();
@@ -111,7 +123,7 @@ public class WishService {
     }
 
     @Transactional
-    public void deleteAll(User user) {
+    public void deleteAllUserWishes(User user) {
         wishRepository.deleteByUser(user);
     }
 
@@ -134,6 +146,12 @@ public class WishService {
             }
 
             wishes.addAll(pageWishes);
+        }
+
+        List<Wish> firstPage = getWishesForPage(authkey, bannerType, 1);
+
+        if(!wishes.get(0).getTime().equals(firstPage.get(0).getTime())) {
+            throw new ApiError(ErrorType.NEW_WISHES_DURING_IMPORT);
         }
 
         return wishes;

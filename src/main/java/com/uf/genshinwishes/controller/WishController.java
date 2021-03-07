@@ -4,9 +4,7 @@ import com.uf.genshinwishes.dto.ItemType;
 import com.uf.genshinwishes.dto.WishDTO;
 import com.uf.genshinwishes.dto.WishFilterDTO;
 import com.uf.genshinwishes.model.BannerType;
-import com.uf.genshinwishes.model.Event;
 import com.uf.genshinwishes.model.User;
-import com.uf.genshinwishes.model.Wish;
 import com.uf.genshinwishes.service.WishService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,6 +85,6 @@ public class WishController {
 
     @DeleteMapping("/deleteAll")
     public void deleteAll(User user) {
-        wishService.deleteAll(user);
+        wishService.deleteAllUserWishes(user);
     }
 }

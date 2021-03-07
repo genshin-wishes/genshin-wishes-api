@@ -63,6 +63,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
                     if (user == null) {
                         user = userService.insertUser(email);
+                    } else {
+                        userService.updateLastLoggingDate(user);
                     }
 
                     httpServletResponse.getWriter().write(new ObjectMapper().writeValueAsString(user));

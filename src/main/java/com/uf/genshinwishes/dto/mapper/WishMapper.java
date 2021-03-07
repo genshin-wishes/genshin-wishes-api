@@ -14,6 +14,8 @@ import java.util.Date;
 public class WishMapper {
 
     public WishDTO toDto(Wish wish) {
+        if(wish == null) return null;
+
         WishDTO wishDTO = new WishDTO();
 
         wishDTO.setId(wish.getId());
@@ -28,6 +30,8 @@ public class WishMapper {
     }
 
     public Wish fromMihoyo(MihoyoWishLogDTO mihoyoWish) {
+        if(mihoyoWish == null) return null;
+
         Wish wish = new Wish();
 
         if(mihoyoWish.getItem_id() != null && !"".equals(mihoyoWish.getItem_id())) {

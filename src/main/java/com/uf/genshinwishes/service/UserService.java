@@ -8,8 +8,11 @@ import com.uf.genshinwishes.repository.UserRepository;
 import com.uf.genshinwishes.service.mihoyo.MihoyoImRestClient;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.LockModeType;
+import javax.transaction.Transactional;
 import java.util.Date;
 
 @Service
@@ -27,13 +30,22 @@ public class UserService {
         User user = new User();
         user.setEmail(email);
         user.setCreationDate(new Date());
+        user.setLastLoggingDate(new Date());
 
         userRepository.save(user);
 
         return user;
     }
 
-    public void linkMihoyoUser(User user, String authkey) throws ApiError {
+    public void verifyUserIsUnlinkedAndLinkToMihoyo(User user, String authkey) throws ApiError {
+        if(user.getMihoyoUid() != null) {
+            throw new ApiError(ErrorType.MIHOYO_UID_DIFFERENT);
+        }
+
+        linkToMihoyo(user, authkey);
+    }
+
+    private void linkToMihoyo(User user, String authkey) {
         MihoyoUserDTO mihoyoUser = mihoyoImRestClient.getUserInfo(authkey);
 
         user.setMihoyoUid(mihoyoUser.getUser_id());
@@ -42,10 +54,12 @@ public class UserService {
         userRepository.save(user);
     }
 
+    @Transactional
+    @Lock(LockModeType.OPTIMISTIC)
     public void linkNewMihoyoAccountAndDeleteOldWishes(User user, String authkey) throws ApiError {
-        this.linkMihoyoUser(user, authkey);
+        this.linkToMihoyo(user, authkey);
 
-        wishService.deleteAll(user);
+        wishService.deleteAllUserWishes(user);
     }
 
     public void deleteUser(User user) {
@@ -56,6 +70,12 @@ public class UserService {
         if (!"fr".equals(lang) && !"en".equals(lang)) throw new ApiError(ErrorType.INVALID_LANG);
 
         user.setLang(lang);
+
+        userRepository.save(user);
+    }
+
+    public void updateLastLoggingDate(User user) {
+        user.setLastLoggingDate(new Date());
 
         userRepository.save(user);
     }

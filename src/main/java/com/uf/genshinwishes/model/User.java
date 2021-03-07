@@ -28,8 +28,15 @@ public class User {
     private Date creationDate;
 
     @Column()
+    private Date lastLoggingDate;
+
+    @Column()
     private String mihoyoUsername;
 
     @Column()
     private String mihoyoUid;
+
+    @Version
+    @Column(name = "optlock", nullable = false)
+    private long version = 0L;
 }
