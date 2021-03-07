@@ -5,10 +5,17 @@ import com.uf.genshinwishes.dto.WishDTO;
 import com.uf.genshinwishes.dto.WishFilterDTO;
 import com.uf.genshinwishes.model.BannerType;
 import com.uf.genshinwishes.model.User;
+import com.uf.genshinwishes.model.Wish;
+import com.uf.genshinwishes.service.CSVHelper;
 import com.uf.genshinwishes.service.WishService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -22,6 +29,8 @@ public class WishController {
 
     @Autowired
     private WishService wishService;
+    @Autowired
+    private MessageSource messageSource;
 
     @GetMapping("/{bannerType}")
     public List<WishDTO> getWishes(User user,
@@ -76,6 +85,20 @@ public class WishController {
     @GetMapping("/import")
     public Map<BannerType, Integer> importWishes(User user, @RequestParam("authkey") String authkey) {
         return wishService.importWishes(user, authkey);
+    }
+
+    @GetMapping("/export")
+    public ResponseEntity<Object> exportWishes(User user) {
+        String filename = user.getMihoyoUid() + "_wishes.csv";
+
+        List<Wish> userWishes = wishService.findByUser(user);
+
+        InputStreamResource file = new InputStreamResource(CSVHelper.wishesToCsv(messageSource, user, userWishes));
+
+        return ResponseEntity.ok()
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
+            .contentType(MediaType.parseMediaType("application/csv"))
+            .body(file);
     }
 
     @GetMapping("/banners")

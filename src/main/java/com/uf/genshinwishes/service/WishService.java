@@ -182,4 +182,8 @@ public class WishService {
                 (banner) -> this.wishRepository.countByUserAndGachaType(user, banner.getType())
             ));
     }
+
+    public List<Wish> findByUser(User user) {
+        return this.wishRepository.findByUserOrderByGachaTypeAscIndexAsc(user);
+    }
 }

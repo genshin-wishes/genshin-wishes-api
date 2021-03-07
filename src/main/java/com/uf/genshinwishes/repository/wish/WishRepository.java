@@ -23,4 +23,6 @@ public interface WishRepository extends PagingAndSortingRepository<Wish, Long>, 
     void deleteByUser(User user);
 
     Long countByUserAndGachaType(User user, Integer gachaType);
+
+    List<Wish> findByUserOrderByGachaTypeAscIndexAsc(User user);
 }
