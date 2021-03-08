@@ -150,7 +150,7 @@ public class WishService {
 
         List<Wish> firstPage = getWishesForPage(authkey, bannerType, 1);
 
-        if(!wishes.get(0).getTime().equals(firstPage.get(0).getTime())) {
+        if(!wishes.isEmpty() && !wishes.get(0).getTime().equals(firstPage.get(0).getTime())) {
             throw new ApiError(ErrorType.NEW_WISHES_DURING_IMPORT);
         }
 
