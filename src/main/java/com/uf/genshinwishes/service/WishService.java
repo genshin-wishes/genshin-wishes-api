@@ -52,7 +52,7 @@ public class WishService {
             throw new ApiError(ErrorType.NO_MIHOYO_LINKED);
         }
 
-        MihoyoUserDTO mihoyoUser = mihoyoImRestClient.getUserInfo(authkey);
+        MihoyoUserDTO mihoyoUser = mihoyoImRestClient.getUserInfo(Optional.of(user), authkey);
 
         if (!user.getMihoyoUid().equals(mihoyoUser.getUser_id()))
             throw new ApiError(ErrorType.MIHOYO_UID_DIFFERENT);

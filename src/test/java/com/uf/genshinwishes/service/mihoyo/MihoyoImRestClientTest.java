@@ -18,6 +18,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -46,7 +47,7 @@ class MihoyoImRestClientTest {
             .thenReturn(new ResponseEntity<>(retDTO, HttpStatus.OK));
 
         Exception exception = Assertions.assertThrows(RuntimeException.class, () -> {
-            mihoyoImRestClient.getUserInfo("authkey");
+            mihoyoImRestClient.getUserInfo(Optional.empty(), "authkey");
         });
 
 
@@ -73,7 +74,7 @@ class MihoyoImRestClientTest {
             .thenReturn(new ResponseEntity<>(retDTO, HttpStatus.OK));
 
         Exception exception = Assertions.assertThrows(RuntimeException.class, () -> {
-            mihoyoImRestClient.getUserInfo("authkey");
+            mihoyoImRestClient.getUserInfo(Optional.empty(), "authkey");
         });
 
 
@@ -103,7 +104,7 @@ class MihoyoImRestClientTest {
                 MihoyoInfoRetDTO.class))
             .thenReturn(new ResponseEntity<>(retDTO, HttpStatus.OK));
 
-        MihoyoUserDTO userDto = mihoyoImRestClient.getUserInfo("authkey");
+        MihoyoUserDTO userDto = mihoyoImRestClient.getUserInfo(Optional.empty(), "authkey");
 
 
         Mockito.verify(restTemplate, Mockito.times(1)).postForEntity(

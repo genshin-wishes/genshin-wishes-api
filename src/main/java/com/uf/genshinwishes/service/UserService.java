@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import javax.persistence.LockModeType;
 import javax.transaction.Transactional;
 import java.util.Date;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor(onConstructor = @__(@Autowired))
@@ -46,7 +47,7 @@ public class UserService {
     }
 
     private void linkToMihoyo(User user, String authkey) {
-        MihoyoUserDTO mihoyoUser = mihoyoImRestClient.getUserInfo(authkey);
+        MihoyoUserDTO mihoyoUser = mihoyoImRestClient.getUserInfo(Optional.empty(), authkey);
 
         user.setMihoyoUid(mihoyoUser.getUser_id());
         user.setMihoyoUsername(mihoyoUser.getNickname());
