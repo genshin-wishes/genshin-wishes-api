@@ -37,7 +37,7 @@ class MihoyoRestClientTest {
 
     @Test
     void givenMihoyoReturnsCorrectData_thenReturnWishes() throws URISyntaxException {
-        URI uri = new URI(MIHOYO_ENDPOINT + "/event/gacha_info/api/getGachaLog?authkey=authkey&init_type=302&gacha_type=302&authkey_ver=1&sign_type=2&auth_appid=webview_gacha&lang=fr&size=20&page=0");
+        URI uri = new URI(MIHOYO_ENDPOINT + "/event/gacha_info/api/getGachaLog?authkey=authkey&init_type=302&gacha_type=302&authkey_ver=1&sign_type=2&auth_appid=webview_gacha&lang=fr&size=20&page=0&end_id=last-id");
 
         List<MihoyoWishLogDTO> expectedWishes = Lists.newArrayList();
         MihoyoWishRetDTO retDTO = new MihoyoWishRetDTO();
@@ -50,11 +50,11 @@ class MihoyoRestClientTest {
 
         Mockito
             .when(restTemplate.getForEntity(
-                uri,
-                MihoyoWishRetDTO.class))
+                Mockito.eq(uri),
+                Mockito.eq(MihoyoWishRetDTO.class)))
             .thenReturn(new ResponseEntity<>(retDTO, HttpStatus.OK));
 
-        List<MihoyoWishLogDTO> wishes = mihoyoRestClient.getWishes("authkey", BannerType.WEAPON_EVENT, 0);
+        List<MihoyoWishLogDTO> wishes = mihoyoRestClient.getWishes("authkey", BannerType.WEAPON_EVENT, "last-id", 0);
 
         Mockito.verify(restTemplate, Mockito.times(1)).getForEntity(
             Mockito.eq(uri),
@@ -89,16 +89,16 @@ class MihoyoRestClientTest {
     }
 
     private void testForIncorrectData(MihoyoWishRetDTO retDTO) throws URISyntaxException {
-        URI uri = new URI(MIHOYO_ENDPOINT + "/event/gacha_info/api/getGachaLog?authkey=authkey&init_type=302&gacha_type=302&authkey_ver=1&sign_type=2&auth_appid=webview_gacha&lang=fr&size=20&page=0");
+        URI uri = new URI(MIHOYO_ENDPOINT + "/event/gacha_info/api/getGachaLog?authkey=authkey&init_type=302&gacha_type=302&authkey_ver=1&sign_type=2&auth_appid=webview_gacha&lang=fr&size=20&page=0&end_id=last-id");
 
         Mockito
             .when(restTemplate.getForEntity(
-                uri,
-                MihoyoWishRetDTO.class))
+                Mockito.eq(uri),
+                Mockito.eq(MihoyoWishRetDTO.class)))
             .thenReturn(new ResponseEntity<>(retDTO, HttpStatus.OK));
 
         Exception exception = Assertions.assertThrows(RuntimeException.class, () -> {
-            mihoyoRestClient.getWishes("authkey", BannerType.WEAPON_EVENT, 0);
+            mihoyoRestClient.getWishes("authkey", BannerType.WEAPON_EVENT, "last_id", 0);
         });
 
 

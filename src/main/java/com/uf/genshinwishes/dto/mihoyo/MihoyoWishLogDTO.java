@@ -12,6 +12,7 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MihoyoWishLogDTO {
+    private String id;
     private String uid;
     private String item_id;
     private String name;

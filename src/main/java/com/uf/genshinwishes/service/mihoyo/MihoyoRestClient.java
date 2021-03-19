@@ -30,7 +30,7 @@ public class MihoyoRestClient {
         this.mihoyoEndpoint = mihoyoEndpoint;
     }
 
-    public List<MihoyoWishLogDTO> getWishes(String authkey, BannerType banner, Integer page) throws ApiError {
+    public List<MihoyoWishLogDTO> getWishes(String authkey, BannerType banner, String lastWishId, Integer page) throws ApiError {
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(mihoyoEndpoint + "/event/gacha_info/api/getGachaLog")
             .queryParam("authkey", authkey)
             .queryParam("init_type", banner.getType())
@@ -41,6 +41,9 @@ public class MihoyoRestClient {
             .queryParam("lang", "en")
             .queryParam("size", 20)
             .queryParam("page", page);
+
+        if(lastWishId != null)
+            builder.queryParam("end_id", lastWishId);
 
         MihoyoWishRetDTO ret;
 
