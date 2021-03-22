@@ -4,16 +4,12 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.FetchMode;
-import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.JoinFormula;
 import org.hibernate.annotations.NotFound;
 import org.hibernate.annotations.NotFoundAction;
-import org.springframework.context.annotation.Lazy;
 
 import javax.persistence.*;
 import java.util.Date;
-import java.util.Optional;
 
 @Getter
 @Setter
@@ -39,8 +35,8 @@ public class Wish {
     private Integer gachaType;
 
     @ManyToOne
-    @JoinColumn(name = "item_id")
     @NotFound(action = NotFoundAction.IGNORE)
+    @JoinColumn(name = "item_id", referencedColumnName = "item_id")
     private Item item;
 
     @Column
@@ -50,7 +46,7 @@ public class Wish {
     private Date time;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinFormula(value = "(SELECT event.id FROM events event WHERE gacha_type = event.gacha_type AND time BETWEEN event.start_date AND event.end_date)")
+    @JoinFormula(value = "(SELECT event.id FROM events event WHERE gacha_type = event.gacha_type AND time BETWEEN event.start AND event.end)")
     @NotFound(action = NotFoundAction.IGNORE)
-    private Event event;
+    private Banner banner;
 }

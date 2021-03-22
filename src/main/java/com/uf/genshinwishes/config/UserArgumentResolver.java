@@ -1,7 +1,7 @@
 package com.uf.genshinwishes.config;
 
-import com.uf.genshinwishes.model.User;
 import com.uf.genshinwishes.repository.UserRepository;
+import com.uf.genshinwishes.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.MethodParameter;
 import org.springframework.security.core.context.SecurityContextHolder;

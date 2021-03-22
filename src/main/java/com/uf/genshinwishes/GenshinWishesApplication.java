@@ -14,7 +14,7 @@ import org.springframework.web.servlet.i18n.AcceptHeaderLocaleResolver;
 import java.util.List;
 import java.util.Locale;
 
-@SpringBootApplication()
+@SpringBootApplication
 public class GenshinWishesApplication {
     @Autowired
     private UserArgumentResolver userArgumentResolver;

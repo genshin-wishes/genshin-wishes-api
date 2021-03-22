@@ -5,6 +5,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
+import com.uf.genshinwishes.repository.ItemRepository;
 import com.uf.genshinwishes.dto.WishDTO;
 import com.uf.genshinwishes.dto.WishFilterDTO;
 import com.uf.genshinwishes.dto.mapper.WishMapper;
@@ -16,7 +17,6 @@ import com.uf.genshinwishes.model.BannerType;
 import com.uf.genshinwishes.model.Item;
 import com.uf.genshinwishes.model.User;
 import com.uf.genshinwishes.model.Wish;
-import com.uf.genshinwishes.repository.ItemRepository;
 import com.uf.genshinwishes.repository.UserRepository;
 import com.uf.genshinwishes.repository.wish.WishRepository;
 import com.uf.genshinwishes.repository.wish.WishSpecification;
@@ -26,7 +26,6 @@ import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.repository.Lock;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityManager;
@@ -34,6 +33,7 @@ import javax.persistence.LockModeType;
 import javax.transaction.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @AllArgsConstructor(onConstructor = @__(@Autowired))
@@ -67,7 +67,7 @@ public class WishService {
 
         List<Wish> bannerWishes = Lists.newArrayList();
 
-        Arrays.stream(BannerType.values()).filter(banner -> banner.getType() > 0).forEach(type -> {
+        BannerType.getBannersExceptAll().forEach(type -> {
             // Attach user to wishes
             List<Wish> wishes = paginateWishesOlderThanDate(authkey, type, ifLastWishDate);
             // Most recent = highest ID

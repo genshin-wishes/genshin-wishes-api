@@ -8,7 +8,7 @@ import lombok.Setter;
 import javax.persistence.*;
 import java.util.Date;
 
-@Entity(name = "USERS")
+@Entity(name = "users")
 @Getter
 @Setter
 @NoArgsConstructor

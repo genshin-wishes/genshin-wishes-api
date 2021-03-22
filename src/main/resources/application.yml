@@ -6,6 +6,7 @@ app:
         im-endpoint: "https://api-os-takumi.mihoyo.com"
         endpoint: "https://hk4e-api-os.mihoyo.com"
 
+
 management:
     endpoints:
         web:

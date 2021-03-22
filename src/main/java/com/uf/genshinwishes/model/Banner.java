@@ -4,39 +4,40 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.NaturalId;
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.NotFoundAction;
 import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
-import java.io.Serializable;
+import java.util.Date;
 import java.util.List;
 
-@Entity(name = "items")
+@Entity(name = "events")
 @Where(clause="published_at is not null")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Item implements Serializable {
-
+public class Banner {
     @Id
     private Long id;
 
-    @NaturalId
-    @Column(name = "item_id", nullable = false)
-    private Long itemId;
+    @ManyToMany
+    @NotFound(action = NotFoundAction.IGNORE)
+    @JoinTable(
+        name = "events__items",
+        joinColumns = @JoinColumn(name = "event_id"),
+        inverseJoinColumns = @JoinColumn(name = "item_id"))
+    private List<Item> items;
 
     @Column(nullable = false)
-    private String name;
+    private Date start;
 
     @Column(nullable = false)
-    private String nameFr;
+    private Date end;
 
     @Column(nullable = false)
-    private String itemType;
-
-    @Column(nullable = false)
-    private Integer rankType;
+    private Integer gachaType;
 
     @ManyToOne
     @JoinTable(

@@ -1,11 +1,11 @@
 package com.uf.genshinwishes.controller;
 
-import com.uf.genshinwishes.dto.ItemType;
-import com.uf.genshinwishes.dto.WishDTO;
-import com.uf.genshinwishes.dto.WishFilterDTO;
 import com.uf.genshinwishes.model.BannerType;
 import com.uf.genshinwishes.model.User;
 import com.uf.genshinwishes.model.Wish;
+import com.uf.genshinwishes.dto.ItemType;
+import com.uf.genshinwishes.dto.WishDTO;
+import com.uf.genshinwishes.dto.WishFilterDTO;
 import com.uf.genshinwishes.service.CSVHelper;
 import com.uf.genshinwishes.service.WishService;
 import org.slf4j.Logger;
@@ -34,14 +34,14 @@ public class WishController {
 
     @GetMapping("/{bannerType}")
     public List<WishDTO> getWishes(User user,
-                                @PathVariable("bannerType") BannerType bannerType,
-                                @RequestParam("page") Integer page,
-                                @RequestParam Optional<String> freeText,
-                                @RequestParam Optional<Boolean> fr,
-                                @RequestParam Optional<List<Integer>> ranks,
-                                @RequestParam Optional<ItemType> itemType,
-                                @RequestParam Optional<List<Long>> characterEvents,
-                                @RequestParam Optional<List<Long>> weaponEvents) {
+                                   @PathVariable("bannerType") BannerType bannerType,
+                                   @RequestParam("page") Integer page,
+                                   @RequestParam Optional<String> freeText,
+                                   @RequestParam Optional<Boolean> fr,
+                                   @RequestParam Optional<List<Integer>> ranks,
+                                   @RequestParam Optional<ItemType> itemType,
+                                   @RequestParam Optional<List<Long>> characterEvents,
+                                   @RequestParam Optional<List<Long>> weaponEvents) {
         return wishService.findByUserAndBannerType(user, bannerType, page, new WishFilterDTO(
             freeText.orElse(null),
             fr.orElse(null),

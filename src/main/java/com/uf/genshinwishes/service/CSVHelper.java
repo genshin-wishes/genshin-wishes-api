@@ -1,6 +1,5 @@
 package com.uf.genshinwishes.service;
 
-import com.uf.genshinwishes.dto.ItemType;
 import com.uf.genshinwishes.model.BannerType;
 import com.uf.genshinwishes.model.User;
 import com.uf.genshinwishes.model.Wish;

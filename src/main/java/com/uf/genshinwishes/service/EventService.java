@@ -1,13 +1,14 @@
 package com.uf.genshinwishes.service;
 
 import com.google.common.collect.Maps;
+import com.uf.genshinwishes.repository.BannerRepository;
 import com.uf.genshinwishes.model.BannerType;
-import com.uf.genshinwishes.model.Event;
-import com.uf.genshinwishes.repository.EventRepository;
+import com.uf.genshinwishes.model.Banner;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,16 +17,17 @@ import java.util.Map;
 @AllArgsConstructor(onConstructor = @__(@Autowired))
 public class EventService {
 
-    private EventRepository eventRepository;
+    private BannerRepository bannerRepository;
 
-    public Map<Integer, Event> getBannerToEventMap() {
-        HashMap<Integer, Event> bannerToEvent = Maps.newHashMap();
-        bannerToEvent.put(BannerType.CHARACTER_EVENT.getType(), eventRepository.findFirstByGachaTypeOrderByEndDateDesc(BannerType.CHARACTER_EVENT.getType()));
-        bannerToEvent.put(BannerType.WEAPON_EVENT.getType(), eventRepository.findFirstByGachaTypeOrderByEndDateDesc(BannerType.WEAPON_EVENT.getType()));
+    public Map<Integer, Banner> getBannerToEventMap() {
+        HashMap<Integer, Banner> bannerToEvent = Maps.newHashMap();
+
+        BannerType.getBannersExceptAll().forEach(banner -> bannerToEvent.put(banner.getType(), bannerRepository.findFirstByGachaTypeOrderByEndDesc(banner.getType())));
+
         return bannerToEvent;
     }
 
-    public List<Event> findAllByGachaTypeOrderByStartDateDesc(Integer gachaType) {
-        return eventRepository.findAllByGachaTypeOrderByStartDateDesc(gachaType);
+    public List<Banner> findAllByGachaTypeOrderByStartDateDesc(Integer gachaType) {
+        return bannerRepository.findAllByGachaTypeOrderByStartDesc(gachaType);
     }
 }

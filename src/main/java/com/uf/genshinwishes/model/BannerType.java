@@ -2,10 +2,10 @@ package com.uf.genshinwishes.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.checkerframework.checker.nullness.Opt;
 
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 @Getter
 @AllArgsConstructor
@@ -23,5 +23,9 @@ public enum BannerType {
 
     public static Optional<BannerType> from(Integer gachaType) {
         return Arrays.stream(BannerType.values()).filter(banner -> banner.getType().equals(gachaType)).findFirst();
+    }
+
+    public static Stream<BannerType> getBannersExceptAll() {
+        return Arrays.stream(BannerType.values()).filter(banner -> banner.getType() > 0);
     }
 }

@@ -1,8 +1,8 @@
 package com.uf.genshinwishes.controller;
 
+import com.uf.genshinwishes.model.User;
 import com.uf.genshinwishes.dto.UserDTO;
 import com.uf.genshinwishes.dto.mapper.UserMapper;
-import com.uf.genshinwishes.model.User;
 import com.uf.genshinwishes.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
