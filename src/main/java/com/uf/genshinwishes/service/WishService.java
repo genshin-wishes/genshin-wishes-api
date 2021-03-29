@@ -5,7 +5,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
-import com.uf.genshinwishes.repository.ItemRepository;
 import com.uf.genshinwishes.dto.WishDTO;
 import com.uf.genshinwishes.dto.WishFilterDTO;
 import com.uf.genshinwishes.dto.mapper.WishMapper;
@@ -17,6 +16,7 @@ import com.uf.genshinwishes.model.BannerType;
 import com.uf.genshinwishes.model.Item;
 import com.uf.genshinwishes.model.User;
 import com.uf.genshinwishes.model.Wish;
+import com.uf.genshinwishes.repository.ItemRepository;
 import com.uf.genshinwishes.repository.UserRepository;
 import com.uf.genshinwishes.repository.wish.WishRepository;
 import com.uf.genshinwishes.repository.wish.WishSpecification;
@@ -31,9 +31,9 @@ import org.springframework.stereotype.Service;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.transaction.Transactional;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 @AllArgsConstructor(onConstructor = @__(@Autowired))
@@ -59,7 +59,7 @@ public class WishService {
             throw new ApiError(ErrorType.MIHOYO_UID_DIFFERENT);
 
         Optional<Wish> ifLastWish = wishRepository.findFirstByUserOrderByTimeDescIdDesc(user);
-        Optional<Date> ifLastWishDate = ifLastWish.map(Wish::getTime);
+        Optional<LocalDateTime> ifLastWishDate = ifLastWish.map(Wish::getTime);
         Map<BannerType, Long> oldCounts = countAllByUser(user);
         Map<BannerType, Integer> counts = Maps.newHashMap();
 
@@ -69,12 +69,12 @@ public class WishService {
 
         BannerType.getBannersExceptAll().forEach(type -> {
             // Attach user to wishes
-            List<Wish> wishes = paginateWishesOlderThanDate(authkey, type, ifLastWishDate);
+            List<Wish> wishes = paginateWishesOlderThanDate(authkey, user.getMihoyoUid(), type, ifLastWishDate);
             // Most recent = highest ID
             Collections.reverse(wishes);
 
             wishes = wishes.stream().map((wish) -> {
-                long index = oldCounts.getOrDefault(type, 0l) + 1;
+                long index = oldCounts.getOrDefault(type, 0L) + 1;
 
                 wish.setUser(user);
                 wish.setIndex(index);
@@ -128,15 +128,15 @@ public class WishService {
         wishRepository.deleteByUser(user);
     }
 
-    private List<Wish> paginateWishesOlderThanDate(String authkey, BannerType bannerType, Optional<Date> ifLastWishDate) {
+    private List<Wish> paginateWishesOlderThanDate(String authkey, String uid, BannerType bannerType, Optional<LocalDateTime> ifLastWishDate) {
         List<Wish> wishes = Lists.newLinkedList();
         List<MihoyoWishLogDTO> pageWishes;
         String lastWishId = null;
-        Integer currentPage = 1;
+        int currentPage = 1;
 
         while (!(pageWishes = getWishesForPage(authkey, bannerType, lastWishId, currentPage++)).isEmpty()) {
             List<Wish> internalWishes = pageWishes.stream()
-                .map(wishMapper::fromMihoyo)
+                .map(wish -> wishMapper.fromMihoyo(wish, uid))
                 .collect(Collectors.toList());
 
             // We got a wish that's older than the last import
@@ -144,8 +144,8 @@ public class WishService {
                 if (internalWishes.get(internalWishes.size() - 1).getTime().compareTo(ifLastWishDate.get()) <= 0) {
 
                     wishes.addAll(pageWishes.stream()
-                        .map(wishMapper::fromMihoyo)
-                        .filter(wish -> wish.getTime().after(ifLastWishDate.get()))
+                        .map(wish -> wishMapper.fromMihoyo(wish, uid))
+                        .filter(wish -> wish.getTime().isAfter(ifLastWishDate.get()))
                         .collect(Collectors.toList()));
 
                     break;
@@ -157,7 +157,7 @@ public class WishService {
         }
 
         if (!wishes.isEmpty()) {
-            Wish firstWish = wishMapper.fromMihoyo(getWishesForPage(authkey, bannerType, null, 1).get(0));
+            Wish firstWish = wishMapper.fromMihoyo(getWishesForPage(authkey, bannerType, null, 1).get(0), uid);
 
             if(!wishes.get(0).getTime().equals(firstWish.getTime())) {
                 throw new ApiError(ErrorType.NEW_WISHES_DURING_IMPORT);
@@ -172,14 +172,16 @@ public class WishService {
     }
 
     public List<WishDTO> findByUserAndBannerType(User user, BannerType bannerType, Integer page, WishFilterDTO filters) {
-        return this.wishRepository.findAll(
-            new WishSpecification(user, bannerType, filters),
+        List<Wish> wishes = this.wishRepository.findAll(
+            WishSpecification.builder().user(user).bannerType(bannerType).filters(filters).build(),
             PageRequest.of(page, 10, Sort.by(Sort.Direction.DESC, "time", "id"))
-        ).getContent().stream().map(wishMapper::toDto).collect(Collectors.toList());
+        ).getContent();
+
+        return wishes.stream().map(wishMapper::toDto).collect(Collectors.toList());
     }
 
     public Long countAllByUserAndGachaType(User user, BannerType bannerType, WishFilterDTO filters) {
-        return this.wishRepository.count(new WishSpecification(user, bannerType, filters));
+        return this.wishRepository.count(WishSpecification.builder().user(user).bannerType(bannerType).filters(filters).build());
     }
 
     public Map<BannerType, Long> countAllByUser(User user) {

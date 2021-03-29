@@ -38,7 +38,7 @@ public class CSVHelper {
 
         try (
             ByteArrayOutputStream out = new ByteArrayOutputStream();
-            final PrintWriter printWriter = new PrintWriter(out);
+            final PrintWriter printWriter = new PrintWriter(out)
         ) {
             printWriter.write('\ufeff');
 
@@ -46,12 +46,12 @@ public class CSVHelper {
                 for (Wish wish : wishes) {
 
                     List<String> data = Arrays.asList(
-                        messageSource.getMessage(BannerType.from(wish.getGachaType()).map(banner -> banner.name()).orElse("UNKNOWN"), null, locale),
+                        messageSource.getMessage(BannerType.from(wish.getGachaType()).map(BannerType::name).orElse("UNKNOWN"), null, locale),
                         String.valueOf(wish.getIndex()),
                         locale.equals(Locale.FRENCH) ? wish.getItem().getNameFr() : wish.getItem().getName(),
                         messageSource.getMessage(wish.getItem().getItemType(), null, locale),
                         String.valueOf(wish.getItem().getRankType()),
-                        wish.getTime().toInstant().toString()
+                        wish.getTime().toString()
                     );
 
                     csvPrinter.printRecord(data);

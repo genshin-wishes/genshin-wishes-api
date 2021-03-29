@@ -4,37 +4,44 @@ import com.uf.genshinwishes.dto.WishDTO;
 import com.uf.genshinwishes.dto.mihoyo.MihoyoWishLogDTO;
 import com.uf.genshinwishes.model.Item;
 import com.uf.genshinwishes.model.Wish;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
 
 @Component
 public class WishMapper {
+    private final Logger logger = LoggerFactory.getLogger(WishMapper.class);
 
     public WishDTO toDto(Wish wish) {
-        if(wish == null) return null;
+        if (wish == null) return null;
 
         WishDTO wishDTO = new WishDTO();
 
-        wishDTO.setId(wish.getId());
-        wishDTO.setUid(wish.getUid());
         wishDTO.setTime(wish.getTime());
         wishDTO.setGachaType(wish.getGachaType());
         wishDTO.setIndex(wish.getIndex());
-        wishDTO.setItem(wish.getItem());
-        wishDTO.setItemName(wish.getItemName());
+
+        if (wish.getItem() != null) {
+            wishDTO.setItemId(wish.getItem().getItemId());
+        }
+
+        if (wish.getBanner() != null) {
+            wishDTO.setBannerId(wish.getBanner().getId());
+        }
+
 
         return wishDTO;
     }
 
-    public Wish fromMihoyo(MihoyoWishLogDTO mihoyoWish) {
-        if(mihoyoWish == null) return null;
+    public Wish fromMihoyo(MihoyoWishLogDTO mihoyoWish, String uid) {
+        if (mihoyoWish == null) return null;
 
         Wish wish = new Wish();
 
-        if(mihoyoWish.getItem_id() != null && !"".equals(mihoyoWish.getItem_id())) {
+        if (mihoyoWish.getItem_id() != null && !"".equals(mihoyoWish.getItem_id())) {
             Item item = new Item();
             item.setItemId(Long.parseLong(mihoyoWish.getItem_id()));
             wish.setItem(item);
@@ -44,11 +51,9 @@ public class WishMapper {
         wish.setItemName(mihoyoWish.getName());
         wish.setGachaType(mihoyoWish.getGacha_type());
         wish.setTime(
-            Date.from(
-                Instant.from(
-                    DateTimeFormatter.ISO_INSTANT.parse(
-                        mihoyoWish.getTime().replace(' ', 'T').concat("Z")
-                    )
+            LocalDateTime.from(
+                DateTimeFormatter.ISO_LOCAL_DATE_TIME.parse(
+                    mihoyoWish.getTime().replace(' ', 'T')
                 )
             )
         );

@@ -16,6 +16,11 @@ public class EventController {
     @Autowired
     private EventService eventService;
 
+    @GetMapping("")
+    public Iterable<Banner> getEvents() {
+        return eventService.findAll();
+    }
+
     @GetMapping("/character")
     public Iterable<Banner> getCharacterEvents() {
         return eventService.findAllByGachaTypeOrderByStartDateDesc(BannerType.CHARACTER_EVENT.getType());

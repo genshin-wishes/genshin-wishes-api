@@ -9,7 +9,7 @@ import org.hibernate.annotations.NotFound;
 import org.hibernate.annotations.NotFoundAction;
 
 import javax.persistence.*;
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -43,10 +43,10 @@ public class Wish {
     private String itemName;
 
     @Column(nullable = false)
-    private Date time;
+    private LocalDateTime time;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinFormula(value = "(SELECT event.id FROM events event WHERE gacha_type = event.gacha_type AND time BETWEEN event.start AND event.end)")
+    @JoinFormula(value = "(SELECT event.id FROM events event WHERE gacha_type = event.gacha_type AND (event.start is null and event.end is null or time BETWEEN event.start AND event.end))")
     @NotFound(action = NotFoundAction.IGNORE)
     private Banner banner;
 }

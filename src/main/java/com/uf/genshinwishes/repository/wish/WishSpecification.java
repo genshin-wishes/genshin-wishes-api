@@ -6,24 +6,26 @@ import com.uf.genshinwishes.model.BannerType;
 import com.uf.genshinwishes.model.Item;
 import com.uf.genshinwishes.model.User;
 import com.uf.genshinwishes.model.Wish;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.*;
 import java.util.List;
 
+@Builder(toBuilder = true)
+@NoArgsConstructor
+@AllArgsConstructor
 public class WishSpecification implements Specification<Wish> {
 
     private User user;
     private BannerType bannerType;
     private WishFilterDTO filters;
+    private Boolean fetchBanner;
 
-    public WishSpecification(User user, BannerType bannerType, WishFilterDTO filters) {
-        this.user = user;
-        this.bannerType = bannerType;
-        this.filters = filters;
+    public WishFilterDTO getFilters() {
+        return filters;
     }
 
     @Override
@@ -41,6 +43,10 @@ public class WishSpecification implements Specification<Wish> {
             predicates.add(getRankPredicate(root, builder));
             predicates.add(getItemTypePredicate(root, builder));
             predicates.add(getDatePredicate(root, builder));
+        }
+
+        if(fetchBanner != null && fetchBanner) {
+            root.fetch("banner", JoinType.LEFT);
         }
 
         return builder.and(predicates.stream().filter(predicate -> predicate != null).toArray(Predicate[]::new));
@@ -83,7 +89,7 @@ public class WishSpecification implements Specification<Wish> {
 
     private Predicate getDatePredicate(Root<Wish> root, CriteriaBuilder builder) {
         if(filters.getEvents() != null && !filters.getEvents().isEmpty()) {
-            return root.get("event").get("id").in(filters.getEvents());
+            return root.get("banner").get("id").in(filters.getEvents());
         }
 
         return null;

@@ -9,7 +9,7 @@ import org.hibernate.annotations.NotFoundAction;
 import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity(name = "events")
@@ -31,10 +31,10 @@ public class Banner {
     private List<Item> items;
 
     @Column(nullable = false)
-    private Date start;
+    private LocalDateTime start;
 
     @Column(nullable = false)
-    private Date end;
+    private LocalDateTime end;
 
     @Column(nullable = false)
     private Integer gachaType;
