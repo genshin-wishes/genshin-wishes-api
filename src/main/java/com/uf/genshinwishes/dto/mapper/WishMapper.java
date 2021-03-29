@@ -4,8 +4,6 @@ import com.uf.genshinwishes.dto.WishDTO;
 import com.uf.genshinwishes.dto.mihoyo.MihoyoWishLogDTO;
 import com.uf.genshinwishes.model.Item;
 import com.uf.genshinwishes.model.Wish;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -13,8 +11,6 @@ import java.time.format.DateTimeFormatter;
 
 @Component
 public class WishMapper {
-    private final Logger logger = LoggerFactory.getLogger(WishMapper.class);
-
     public WishDTO toDto(Wish wish) {
         if (wish == null) return null;
 
@@ -27,11 +23,6 @@ public class WishMapper {
         if (wish.getItem() != null) {
             wishDTO.setItemId(wish.getItem().getItemId());
         }
-
-        if (wish.getBanner() != null) {
-            wishDTO.setBannerId(wish.getBanner().getId());
-        }
-
 
         return wishDTO;
     }

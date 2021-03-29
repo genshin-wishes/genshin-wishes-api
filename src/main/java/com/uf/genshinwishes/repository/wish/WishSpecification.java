@@ -1,18 +1,22 @@
 package com.uf.genshinwishes.repository.wish;
 
 import com.google.common.collect.Lists;
+import com.uf.genshinwishes.dto.BannerDTO;
 import com.uf.genshinwishes.dto.WishFilterDTO;
-import com.uf.genshinwishes.model.BannerType;
-import com.uf.genshinwishes.model.Item;
-import com.uf.genshinwishes.model.User;
-import com.uf.genshinwishes.model.Wish;
+import com.uf.genshinwishes.exception.ApiError;
+import com.uf.genshinwishes.exception.ErrorType;
+import com.uf.genshinwishes.model.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 
-import javax.persistence.criteria.*;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Builder(toBuilder = true)
 @NoArgsConstructor
@@ -21,6 +25,7 @@ public class WishSpecification implements Specification<Wish> {
 
     private User user;
     private BannerType bannerType;
+    private List<BannerDTO> banners;
     private WishFilterDTO filters;
     private Boolean fetchBanner;
 
@@ -30,6 +35,8 @@ public class WishSpecification implements Specification<Wish> {
 
     @Override
     public Predicate toPredicate(Root<Wish> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder builder) {
+        if (user == null || bannerType == null || banners == null) throw new ApiError(ErrorType.INVALID_FILTERS);
+
         List<Predicate> predicates = Lists.newArrayList();
 
         // Mandatory
@@ -43,10 +50,6 @@ public class WishSpecification implements Specification<Wish> {
             predicates.add(getRankPredicate(root, builder));
             predicates.add(getItemTypePredicate(root, builder));
             predicates.add(getDatePredicate(root, builder));
-        }
-
-        if(fetchBanner != null && fetchBanner) {
-            root.fetch("banner", JoinType.LEFT);
         }
 
         return builder.and(predicates.stream().filter(predicate -> predicate != null).toArray(Predicate[]::new));
@@ -88,10 +91,20 @@ public class WishSpecification implements Specification<Wish> {
     }
 
     private Predicate getDatePredicate(Root<Wish> root, CriteriaBuilder builder) {
-        if(filters.getEvents() != null && !filters.getEvents().isEmpty()) {
-            return root.get("banner").get("id").in(filters.getEvents());
+        if (filters.getEvents() != null && !filters.getEvents().isEmpty()) {
+            List<Predicate> orTime = filters.getEvents().stream().map(event -> {
+                BannerDTO banner = getBanner(event);
+
+                return builder.between(root.get("time"), builder.literal(banner.getStart()), builder.literal(banner.getEnd()));
+            }).collect(Collectors.toList());
+
+            return builder.or(orTime.toArray(new Predicate[]{}));
         }
 
         return null;
+    }
+
+    private BannerDTO getBanner(Long event) {
+        return banners.stream().filter(b -> b.getId().equals(event)).findFirst().orElseThrow();
     }
 }

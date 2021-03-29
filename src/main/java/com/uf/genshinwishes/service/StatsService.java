@@ -1,9 +1,6 @@
 package com.uf.genshinwishes.service;
 
-import com.uf.genshinwishes.dto.CountPerDayDTO;
-import com.uf.genshinwishes.dto.StatsDTO;
-import com.uf.genshinwishes.dto.WishDTO;
-import com.uf.genshinwishes.dto.WishFilterDTO;
+import com.uf.genshinwishes.dto.*;
 import com.uf.genshinwishes.dto.mapper.WishMapper;
 import com.uf.genshinwishes.model.BannerType;
 import com.uf.genshinwishes.model.User;
@@ -32,12 +29,14 @@ import java.util.stream.Collectors;
 public class StatsService {
 
     private EntityManager em;
+    private BannerService bannerService;
     private WishRepository wishRepository;
     private WishMapper wishMapper;
 
     public StatsDTO getStatsFor(User user, BannerType bannerType, WishFilterDTO filters) {
+        List<BannerDTO> banners = bannerService.findAll(user);
         filters.setRanks(Arrays.asList(4, 5));
-        WishSpecification specification = WishSpecification.builder().user(user).bannerType(bannerType).filters(filters).build();
+        WishSpecification specification = WishSpecification.builder().user(user).bannerType(bannerType).banners(banners).filters(filters).build();
 
         StatsDTO stats = new StatsDTO();
 

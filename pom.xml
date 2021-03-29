@@ -5,12 +5,12 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.3.9.RELEASE</version>
+        <version>2.4.4</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.uf</groupId>
     <artifactId>genshin-wishes</artifactId>
-    <version>1.5.3</version>
+    <version>1.6.0-beta</version>
     <packaging>jar</packaging>
     <name>genshin-wishes</name>
     <description></description>

@@ -44,9 +44,4 @@ public class Wish {
 
     @Column(nullable = false)
     private LocalDateTime time;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinFormula(value = "(SELECT event.id FROM events event WHERE gacha_type = event.gacha_type AND (event.start is null and event.end is null or time BETWEEN event.start AND event.end))")
-    @NotFound(action = NotFoundAction.IGNORE)
-    private Banner banner;
 }

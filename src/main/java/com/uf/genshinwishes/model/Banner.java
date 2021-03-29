@@ -39,6 +39,11 @@ public class Banner {
     @Column(nullable = false)
     private Integer gachaType;
 
+    @Column
+    private Boolean isStartLocale;
+    @Column
+    private Boolean isEndLocale;
+
     @ManyToOne
     @JoinTable(
         name = "upload_file_morph",

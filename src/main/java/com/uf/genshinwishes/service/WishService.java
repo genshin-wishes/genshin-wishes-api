@@ -5,6 +5,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
+import com.uf.genshinwishes.dto.BannerDTO;
 import com.uf.genshinwishes.dto.WishDTO;
 import com.uf.genshinwishes.dto.WishFilterDTO;
 import com.uf.genshinwishes.dto.mapper.WishMapper;
@@ -17,7 +18,6 @@ import com.uf.genshinwishes.model.Item;
 import com.uf.genshinwishes.model.User;
 import com.uf.genshinwishes.model.Wish;
 import com.uf.genshinwishes.repository.ItemRepository;
-import com.uf.genshinwishes.repository.UserRepository;
 import com.uf.genshinwishes.repository.wish.WishRepository;
 import com.uf.genshinwishes.repository.wish.WishSpecification;
 import com.uf.genshinwishes.service.mihoyo.MihoyoImRestClient;
@@ -39,8 +39,8 @@ import java.util.stream.Collectors;
 @AllArgsConstructor(onConstructor = @__(@Autowired))
 public class WishService {
 
-    private UserRepository userRepository;
     private WishRepository wishRepository;
+    private BannerService bannerService;
     private ItemRepository itemRepository;
     private MihoyoRestClient mihoyoRestClient;
     private MihoyoImRestClient mihoyoImRestClient;
@@ -172,8 +172,9 @@ public class WishService {
     }
 
     public List<WishDTO> findByUserAndBannerType(User user, BannerType bannerType, Integer page, WishFilterDTO filters) {
+        List<BannerDTO> banners = bannerService.findAll(user);
         List<Wish> wishes = this.wishRepository.findAll(
-            WishSpecification.builder().user(user).bannerType(bannerType).filters(filters).build(),
+            WishSpecification.builder().user(user).bannerType(bannerType).banners(banners).filters(filters).build(),
             PageRequest.of(page, 10, Sort.by(Sort.Direction.DESC, "time", "id"))
         ).getContent();
 
@@ -181,7 +182,8 @@ public class WishService {
     }
 
     public Long countAllByUserAndGachaType(User user, BannerType bannerType, WishFilterDTO filters) {
-        return this.wishRepository.count(WishSpecification.builder().user(user).bannerType(bannerType).filters(filters).build());
+        List<BannerDTO> banners = bannerService.findAll(user);
+        return this.wishRepository.count(WishSpecification.builder().user(user).bannerType(bannerType).banners(banners).filters(filters).build());
     }
 
     public Map<BannerType, Long> countAllByUser(User user) {
