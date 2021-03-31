@@ -80,4 +80,19 @@ public class UserService {
 
         userRepository.save(user);
     }
+
+    public static int getRegionOffset(User user) {
+        if (user.getMihoyoUid() == null || user.getMihoyoUid().isEmpty()) return 0;
+
+        switch (user.getMihoyoUid().charAt(0)) {
+            case '6':
+                return 5;
+            case '7':
+                return -1;
+            case '8':
+                return -8;
+            default:
+                throw new ApiError(ErrorType.NO_REGION_FROM_USER_UID);
+        }
+    }
 }

@@ -41,19 +41,4 @@ public class User {
     @Version
     @Column(name = "optlock", nullable = false)
     private long version = 0L;
-
-    public int getRegionOffset() {
-        if (getMihoyoUid() == null || getMihoyoUid().isEmpty()) throw new ApiError(ErrorType.NO_REGION_FROM_USER_UID);
-
-        switch (getMihoyoUid().charAt(0)) {
-            case '6':
-                return 5;
-            case '7':
-                return -1;
-            case '8':
-                return -8;
-            default:
-                throw new ApiError(ErrorType.NO_REGION_FROM_USER_UID);
-        }
-    }
 }

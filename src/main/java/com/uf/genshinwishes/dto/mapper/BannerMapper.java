@@ -1,14 +1,13 @@
 package com.uf.genshinwishes.dto.mapper;
 
 import com.uf.genshinwishes.dto.BannerDTO;
-import com.uf.genshinwishes.dto.UserDTO;
 import com.uf.genshinwishes.model.Banner;
 import com.uf.genshinwishes.model.BannerType;
 import com.uf.genshinwishes.model.User;
+import com.uf.genshinwishes.service.UserService;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 
 @Component
 public class BannerMapper {
@@ -32,6 +31,6 @@ public class BannerMapper {
     }
 
     private LocalDateTime computeDate(User user, LocalDateTime date, Boolean isLocale) {
-        return isLocale != null && isLocale ? date : date.minusHours(user.getRegionOffset());
+        return isLocale != null && isLocale ? date : date.minusHours(UserService.getRegionOffset(user));
     }
 }
