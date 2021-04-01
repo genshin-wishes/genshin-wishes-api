@@ -44,7 +44,22 @@ public class UserService {
         return user;
     }
 
+    public User retrieveOrInsertUser(String email) {
+        User user = this.findByEmail(email);
+
+        if (user == null) {
+            user = this.insertUser(email);
+        } else if (user.getKey() == null) {
+            this.createKey(user);
+        } else {
+            this.updateLastLoggingDate(user);
+        }
+
+        return user;
+    }
+
     public void createKey(User user) {
+        user.setLastLoggingDate(new Date());
         user.setKey(UUID.randomUUID().toString());
 
         userRepository.save(user);
@@ -104,7 +119,7 @@ public class UserService {
             case '7':
                 return -1;
             default:
-                logger.error("No region from user region {}, using Asia as default", user.getMihoyoUid());
+                logger.info("No region from user region {}, using Asia as default", user.getMihoyoUid());
             case '8':
                 return -8;
         }

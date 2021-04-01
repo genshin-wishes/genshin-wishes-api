@@ -28,20 +28,8 @@ public class CustomOauth2UserService extends DefaultOAuth2UserService {
 
         if (email == null) throw new OAuth2AuthenticationException(new OAuth2Error("email-permission-required"));
 
-        User user = retrieveOrInsertUser((String) email);
+        User user = userService.retrieveOrInsertUser((String) email);
 
         return UserPrincipal.create(user);
-    }
-
-    private User retrieveOrInsertUser(String email) {
-        User user = userService.findByEmail(email);
-
-        if (user == null) {
-            user = userService.insertUser(email);
-        } else if (user.getKey() == null) {
-            userService.createKey(user);
-        }
-
-        return user;
     }
 }
