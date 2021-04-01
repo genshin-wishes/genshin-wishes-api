@@ -1,13 +1,13 @@
 package com.uf.genshinwishes.model;
 
-import com.uf.genshinwishes.exception.ApiError;
-import com.uf.genshinwishes.exception.ErrorType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.Date;
 
 @Entity(name = "users")
@@ -15,13 +15,19 @@ import java.util.Date;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class User {
+public class User implements Serializable {
+    @Serial
+    private static final long serialVersionUID = -51419785561130265L;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
     private String email;
+
+    @Column
+    private String key;
 
     @Column()
     private String lang;

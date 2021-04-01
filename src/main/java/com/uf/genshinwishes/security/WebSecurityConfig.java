@@ -1,8 +1,5 @@
 package com.uf.genshinwishes.security;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.uf.genshinwishes.model.User;
-import com.uf.genshinwishes.service.UserService;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,8 +10,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
+import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
+import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -24,6 +22,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import javax.servlet.http.HttpServletResponse;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Configuration
@@ -35,7 +35,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     private String clientUrl;
 
     @NonNull
-    private UserService userService;
+    private CustomOidcUserService customOidcUserService;
+    @NonNull
+    private CustomUserDetailsService customUserDetailsService;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -50,18 +52,15 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             .anyRequest().authenticated()
             .and()
             .oauth2Login()
+            .userInfoEndpoint()
+            .oidcUserService(customOidcUserService)
+            .and()
             .successHandler((httpServletRequest, httpServletResponse, authentication) -> {
-                String email = (String) ((DefaultOAuth2User) authentication.getPrincipal()).getAttributes().get("email");
-                User user = userService.findByEmail(email);
-
-                if (user == null) {
-                    user = userService.insertUser(email);
-                } else {
-                    userService.updateLastLoggingDate(user);
-                }
-
-                httpServletResponse.getWriter().write(new ObjectMapper().writeValueAsString(user));
+                httpServletResponse.getWriter().write("");
             })
+            .and()
+            .rememberMe()
+            .rememberMeServices(getRememberMeServices())
             .and()
             .exceptionHandling()
             .defaultAuthenticationEntryPointFor(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED), new AntPathRequestMatcher("/**"))
@@ -72,6 +71,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                         response.setStatus(HttpServletResponse.SC_OK);
                     }
                 ));
+    }
+
+    @Bean
+    public TokenBasedRememberMeServices getRememberMeServices() {
+        TokenBasedRememberMeServices rememberMeServices = new TokenBasedRememberMeServices("rememberme", customUserDetailsService);
+        rememberMeServices.setAlwaysRemember(true);
+        return rememberMeServices;
     }
 
     @Bean
@@ -86,6 +92,15 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         );
         source.registerCorsConfiguration("/**", corsConfiguration);
         return source;
+    }
+
+    private OAuth2AuthorizationRequest customAuthorizationRequest(OAuth2AuthorizationRequest authorizationRequest) {
+        Map<String, Object> additionalParameters =new LinkedHashMap<>(authorizationRequest.getAdditionalParameters());
+        additionalParameters.put("access_type", "offline");
+
+        return OAuth2AuthorizationRequest.from(authorizationRequest)
+            .additionalParameters(additionalParameters)
+            .build();
     }
 }
 

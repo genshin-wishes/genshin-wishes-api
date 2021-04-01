@@ -1,11 +1,17 @@
 package com.uf.genshinwishes;
 
+import com.uf.genshinwishes.config.SerializationSafeRepository;
 import com.uf.genshinwishes.config.UserArgumentResolver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.context.support.ResourceBundleMessageSource;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.session.SessionRepository;
+import org.springframework.session.data.redis.RedisIndexedSessionRepository;
+import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -15,12 +21,21 @@ import java.util.List;
 import java.util.Locale;
 
 @SpringBootApplication
+@EnableRedisHttpSession
 public class GenshinWishesApplication {
     @Autowired
     private UserArgumentResolver userArgumentResolver;
+    @Autowired
+    RedisTemplate<Object, Object> redisTemplate;
 
     public static void main(String[] args) {
         SpringApplication.run(GenshinWishesApplication.class, args);
+    }
+
+    @Primary
+    @Bean
+    public SessionRepository primarySessionRepository(RedisIndexedSessionRepository delegate) {
+        return new SerializationSafeRepository(delegate, redisTemplate);
     }
 
     @Bean

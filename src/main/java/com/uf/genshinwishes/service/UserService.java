@@ -7,6 +7,8 @@ import com.uf.genshinwishes.model.User;
 import com.uf.genshinwishes.repository.UserRepository;
 import com.uf.genshinwishes.service.mihoyo.MihoyoImRestClient;
 import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.stereotype.Service;
@@ -15,10 +17,13 @@ import javax.persistence.LockModeType;
 import javax.transaction.Transactional;
 import java.util.Date;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @AllArgsConstructor(onConstructor = @__(@Autowired))
 public class UserService {
+    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
+
     private MihoyoImRestClient mihoyoImRestClient;
     private UserRepository userRepository;
     private WishService wishService;
@@ -32,15 +37,24 @@ public class UserService {
         user.setEmail(email);
         user.setCreationDate(new Date());
         user.setLastLoggingDate(new Date());
+        user.setKey(UUID.randomUUID().toString());
 
         userRepository.save(user);
 
         return user;
     }
 
+    public void createKey(User user) {
+        user.setKey(UUID.randomUUID().toString());
+
+        userRepository.save(user);
+    }
+
+    @Transactional
+    @Lock(LockModeType.OPTIMISTIC)
     public void verifyUserIsUnlinkedAndLinkToMihoyo(User user, String authkey) throws ApiError {
         if(user.getMihoyoUid() != null) {
-            throw new ApiError(ErrorType.MIHOYO_UID_DIFFERENT);
+            return; // already linked so we ignore
         }
 
         linkToMihoyo(user, authkey);
@@ -89,10 +103,10 @@ public class UserService {
                 return 5;
             case '7':
                 return -1;
+            default:
+                logger.error("No region from user region {}, using Asia as default", user.getMihoyoUid());
             case '8':
                 return -8;
-            default:
-                throw new ApiError(ErrorType.NO_REGION_FROM_USER_UID);
         }
     }
 }

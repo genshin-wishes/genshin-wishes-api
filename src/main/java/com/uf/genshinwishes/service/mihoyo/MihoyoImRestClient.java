@@ -51,6 +51,9 @@ public class MihoyoImRestClient {
             return restTemplate.postForEntity(builder.build(true).toUri(),
                 "{\"device\":\"Mozilla\",\"language\":\"en\",\"system_info\":\"Mozilla/5.0\"}"
                 , MihoyoInfoRetDTO.class).getBody();
+        } catch (IllegalArgumentException e) {
+            logger.error("Illegal arg #{}", user.map(User::getId).map(String::valueOf).orElse("new user"), e);
+            throw new ApiError(ErrorType.AUTHKEY_INVALID);
         } catch (Exception e) {
             logger.error("Can't get #{} info from mihoyo", user.map(User::getId).map(String::valueOf).orElse("new user"), e);
             throw new ApiError(ErrorType.MIHOYO_UNREACHABLE);
