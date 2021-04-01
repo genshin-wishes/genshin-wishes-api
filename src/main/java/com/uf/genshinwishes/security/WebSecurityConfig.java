@@ -37,6 +37,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @NonNull
     private CustomOidcUserService customOidcUserService;
     @NonNull
+    private CustomOauth2UserService customOauth2UserService;
+    @NonNull
     private CustomUserDetailsService customUserDetailsService;
 
     @Override
@@ -54,6 +56,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             .oauth2Login()
             .userInfoEndpoint()
             .oidcUserService(customOidcUserService)
+            .userService(customOauth2UserService)
             .and()
             .successHandler((httpServletRequest, httpServletResponse, authentication) -> {
                 httpServletResponse.getWriter().write("");
