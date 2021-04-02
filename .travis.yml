@@ -1,0 +1,25 @@
+language: java
+jdk:
+    - oraclejdk15
+sudo: true
+dist: trusty
+
+services:
+    - docker
+
+install: true
+
+before_script:
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+    - VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+
+script:
+    - docker build -t genshinwishes/genshin-wishes-api:$VERSION .
+    - docker push genshinwishes/genshin-wishes-api:$VERSION
+
+before_deploy:
+    - git tag $VERSION
+
+deploy:
+    provider: releases
+    skip_cleanup: true
