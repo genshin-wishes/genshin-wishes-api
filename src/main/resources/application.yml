@@ -1,5 +1,7 @@
 app:
     client-url: ${CLIENT_URL}
+    read-timeout: 10000
+    connect-timeout: 2000
     oauth2:
         redirectUri: "${app.client-url}/login/oauth2/callback/{registrationId}"
     mihoyo:

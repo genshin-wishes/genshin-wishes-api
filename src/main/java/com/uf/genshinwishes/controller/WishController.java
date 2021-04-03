@@ -1,12 +1,14 @@
 package com.uf.genshinwishes.controller;
 
-import com.uf.genshinwishes.model.BannerType;
-import com.uf.genshinwishes.model.User;
-import com.uf.genshinwishes.model.Wish;
+import com.uf.genshinwishes.dto.BannerImportStateDTO;
 import com.uf.genshinwishes.dto.ItemType;
 import com.uf.genshinwishes.dto.WishDTO;
 import com.uf.genshinwishes.dto.WishFilterDTO;
+import com.uf.genshinwishes.model.BannerType;
+import com.uf.genshinwishes.model.User;
+import com.uf.genshinwishes.model.Wish;
 import com.uf.genshinwishes.service.CSVHelper;
+import com.uf.genshinwishes.service.ImportingStateService;
 import com.uf.genshinwishes.service.WishService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +20,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.UnknownHostException;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -29,6 +32,8 @@ public class WishController {
 
     @Autowired
     private WishService wishService;
+    @Autowired
+    private ImportingStateService importingStateService;
     @Autowired
     private MessageSource messageSource;
 
@@ -82,9 +87,18 @@ public class WishController {
         return wishService.countAllByUser(user);
     }
 
+    @GetMapping("/importState")
+    public Map<BannerType, BannerImportStateDTO> getImportState(User user) {
+        return importingStateService.getImportingStateDtoFor(user);
+    }
+    @DeleteMapping("/importState")
+    public void deleteImportState(User user) {
+        importingStateService.deleteImportantStateOf(user);
+    }
+
     @GetMapping("/import")
-    public Map<BannerType, Integer> importWishes(User user, @RequestParam("authkey") String authkey) {
-        return wishService.importWishes(user, authkey);
+    public void importWishes(User user, @RequestParam("authkey") String authkey) {
+        wishService.importWishes(user, authkey);
     }
 
     @GetMapping("/export")

@@ -31,7 +31,7 @@ public class SerializationSafeRepository<S extends Session> implements SessionRe
         try {
             return delegate.findById(id);
         } catch (SerializationException e) {
-            redisTemplate.delete(BOUNDED_HASH_KEY_PREFIX + "id");
+            redisTemplate.delete(BOUNDED_HASH_KEY_PREFIX + id);
             return null;
         }
     }

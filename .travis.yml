@@ -1,8 +1,7 @@
 language: java
+os: linux
 jdk:
     - oraclejdk15
-sudo: true
-dist: trusty
 
 services:
     - docker
@@ -22,4 +21,3 @@ before_deploy:
 
 deploy:
     provider: releases
-    skip_cleanup: true
