@@ -13,6 +13,7 @@ public class UserMapper {
 
         userDTO.setEmail(user.getEmail());
         userDTO.setLang(user.getLang());
+        userDTO.setWholeClock(user.getWholeClock());
         userDTO.setMihoyoUid(user.getMihoyoUid());
         userDTO.setMihoyoUsername(user.getMihoyoUsername());
 

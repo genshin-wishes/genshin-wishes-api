@@ -32,6 +32,9 @@ public class User implements Serializable {
     @Column()
     private String lang;
 
+    @Column()
+    private Boolean wholeClock;
+
     @Column(nullable = false)
     private Date creationDate;
 

@@ -104,6 +104,12 @@ public class UserService {
         userRepository.save(user);
     }
 
+    public void updateWholeClock(User user, Boolean wholeClock) {
+        user.setWholeClock(wholeClock);
+
+        userRepository.save(user);
+    }
+
     public void updateLastLoggingDate(User user) {
         user.setLastLoggingDate(new Date());
 
