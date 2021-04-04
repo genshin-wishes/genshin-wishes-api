@@ -46,8 +46,4 @@ public class User implements Serializable {
 
     @Column()
     private String mihoyoUid;
-
-    @Version
-    @Column(name = "optlock", nullable = false)
-    private long version = 0L;
 }

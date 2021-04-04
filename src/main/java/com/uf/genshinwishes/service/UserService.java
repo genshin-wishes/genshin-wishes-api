@@ -10,11 +10,9 @@ import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.Lock;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.LockModeType;
-import javax.transaction.Transactional;
 import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
@@ -66,7 +64,6 @@ public class UserService {
     }
 
     @Transactional
-    @Lock(LockModeType.OPTIMISTIC)
     public void verifyUserIsUnlinkedAndLinkToMihoyo(User user, String authkey) throws ApiError {
         if(user.getMihoyoUid() != null) {
             return; // already linked so we ignore
@@ -85,7 +82,6 @@ public class UserService {
     }
 
     @Transactional
-    @Lock(LockModeType.OPTIMISTIC)
     public void linkNewMihoyoAccountAndDeleteOldWishes(User user, String authkey) throws ApiError {
         this.linkToMihoyo(user, authkey);
 

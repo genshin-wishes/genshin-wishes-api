@@ -27,7 +27,7 @@ public class WishMapper {
         return wishDTO;
     }
 
-    public Wish fromMihoyo(MihoyoWishLogDTO mihoyoWish, String uid) {
+    public Wish fromMihoyo(MihoyoWishLogDTO mihoyoWish) {
         if (mihoyoWish == null) return null;
 
         Wish wish = new Wish();
