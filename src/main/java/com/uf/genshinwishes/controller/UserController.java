@@ -34,12 +34,28 @@ public class UserController {
         return userMapper.toDto(user);
     }
 
+    @PatchMapping("/share")
+    public String share(User user) {
+        String profileId = user.getProfileId();
+
+        if (profileId == null) {
+            profileId = userService.initProfileId(user);
+        }
+
+        userService.share(user, true);
+
+        return profileId;
+    }
+
+    @PatchMapping("/stopSharing")
+    public void stopSharing(User user) {
+        userService.share(user, false);
+    }
 
     @DeleteMapping("/delete")
     public void deleteUser(User user) {
         userService.deleteUser(user);
     }
-
 
     @PatchMapping("/lang")
     public void updateLang(User user, @RequestParam("lang") String lang) {

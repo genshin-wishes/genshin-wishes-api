@@ -46,4 +46,10 @@ public class User implements Serializable {
 
     @Column()
     private String mihoyoUid;
+
+    @Column()
+    private String profileId;
+
+    @Column()
+    private Boolean sharing;
 }

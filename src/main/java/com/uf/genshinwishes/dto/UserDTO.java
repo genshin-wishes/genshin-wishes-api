@@ -15,4 +15,6 @@ public class UserDTO {
     private Boolean wholeClock;
     private String mihoyoUsername;
     private String mihoyoUid;
+    private String profileId;
+    private Boolean sharing;
 }

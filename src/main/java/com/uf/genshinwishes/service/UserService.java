@@ -13,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigInteger;
+import java.time.Instant;
 import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
@@ -65,7 +67,7 @@ public class UserService {
 
     @Transactional
     public void verifyUserIsUnlinkedAndLinkToMihoyo(User user, String authkey) throws ApiError {
-        if(user.getMihoyoUid() != null) {
+        if (user.getMihoyoUid() != null) {
             return; // already linked so we ignore
         }
 
@@ -108,6 +110,25 @@ public class UserService {
 
     public void updateLastLoggingDate(User user) {
         user.setLastLoggingDate(new Date());
+
+        userRepository.save(user);
+    }
+
+    public String initProfileId(User user) {
+        String profileId = BigInteger.valueOf(Long.parseLong(Instant.now().toEpochMilli() + "" + user.getId())).toString(36);
+        user.setProfileId(profileId);
+
+        userRepository.save(user);
+
+        return profileId;
+    }
+
+    public User findUserByProfileId(String profileId) {
+        return userRepository.findByProfileId(profileId);
+    }
+
+    public void share(User user, boolean share) {
+        user.setSharing(share);
 
         userRepository.save(user);
     }

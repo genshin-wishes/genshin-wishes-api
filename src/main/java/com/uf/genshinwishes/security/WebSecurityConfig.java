@@ -50,7 +50,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
             .and()
             .authorizeRequests()
-            .antMatchers("/oauth2/**", "/login/**", "/user", "/actuator/**").permitAll()
+            .antMatchers("/oauth2/**",
+                "/login/**",
+                "/user",
+                "/items/**",
+                "/actuator/**",
+                "/profile/**").permitAll()
             .anyRequest().authenticated()
             .and()
             .oauth2Login()
