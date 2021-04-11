@@ -55,6 +55,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 "/user",
                 "/items/**",
                 "/actuator/**",
+                "/public/**",
                 "/profile/**").permitAll()
             .anyRequest().authenticated()
             .and()

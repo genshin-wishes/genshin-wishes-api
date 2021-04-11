@@ -41,14 +41,14 @@ public class WishController {
     public List<WishDTO> getWishes(User user,
                                    @PathVariable("bannerType") BannerType bannerType,
                                    @RequestParam("page") Integer page,
-                                   @RequestParam Optional<String> freeText,
+                                   @RequestParam Optional<List<Integer>> items,
                                    @RequestParam Optional<Boolean> fr,
                                    @RequestParam Optional<List<Integer>> ranks,
                                    @RequestParam Optional<ItemType> itemType,
                                    @RequestParam Optional<List<Long>> characterEvents,
                                    @RequestParam Optional<List<Long>> weaponEvents) {
         return wishService.findByUserAndBannerType(user, bannerType, page, new WishFilterDTO(
-            freeText.orElse(null),
+            items.orElse(null),
             fr.orElse(null),
             ranks.orElse(null),
             itemType.orElse(null),
@@ -61,7 +61,7 @@ public class WishController {
 
     @GetMapping("/{bannerType}/count")
     public Long countWishesByBanner(User user, @PathVariable("bannerType") BannerType bannerType,
-                                    @RequestParam Optional<String> freeText,
+                                    @RequestParam Optional<List<Integer>> items,
                                     @RequestParam Optional<Boolean> fr,
                                     @RequestParam Optional<List<Integer>> ranks,
                                     @RequestParam Optional<ItemType> itemType,
@@ -69,7 +69,7 @@ public class WishController {
                                     @RequestParam Optional<List<Long>> weaponEvents
     ) {
         WishFilterDTO filters = new WishFilterDTO(
-            freeText.orElse(null),
+            items.orElse(null),
             fr.orElse(null),
             ranks.orElse(null),
             itemType.orElse(null),

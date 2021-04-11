@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigInteger;
 import java.time.Instant;
 import java.util.Date;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -83,6 +84,8 @@ public class UserService {
         userRepository.save(user);
     }
 
+
+
     @Transactional
     public void linkNewMihoyoAccountAndDeleteOldWishes(User user, String authkey) throws ApiError {
         this.linkToMihoyo(user, authkey);
@@ -95,7 +98,7 @@ public class UserService {
     }
 
     public void updateLang(User user, String lang) {
-        if (!"fr".equals(lang) && !"en".equals(lang)) throw new ApiError(ErrorType.INVALID_LANG);
+        if (lang == null || "".equals(Locale.forLanguageTag(lang).toString())) throw new ApiError(ErrorType.INVALID_LANG);
 
         user.setLang(lang);
 

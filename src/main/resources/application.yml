@@ -35,6 +35,7 @@ spring:
                         client-id: 3643805775683535
                         client-secret: ${FACEBOOK_SECRET}
                         redirect-uri: ${app.oauth2.redirectUri}
+                        scope: email
                     google:
                         client-id: 431139673562-0676kbn3tpab8j6dml7nbrhvhj6e0432.apps.googleusercontent.com
                         client-secret: ${GOOGLE_SECRET}

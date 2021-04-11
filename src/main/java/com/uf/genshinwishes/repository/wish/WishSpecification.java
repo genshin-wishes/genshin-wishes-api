@@ -46,7 +46,7 @@ public class WishSpecification implements Specification<Wish> {
 
         // Optional
         if (filters != null) {
-            predicates.add(getFreeTextPredicate(root, builder));
+            predicates.add(getItemPredicate(root, builder));
             predicates.add(getRankPredicate(root, builder));
             predicates.add(getItemTypePredicate(root, builder));
             predicates.add(getDatePredicate(root, builder));
@@ -55,17 +55,10 @@ public class WishSpecification implements Specification<Wish> {
         return builder.and(predicates.stream().filter(predicate -> predicate != null).toArray(Predicate[]::new));
     }
 
-    private Predicate getFreeTextPredicate(Root<Wish> root, CriteriaBuilder builder) {
-        if (filters.getFreeText() != null) {
-            return builder.like(
-                builder.lower(root.<Item>get("item").<String>get(Boolean.TRUE.equals(filters.getFr()) ? "nameFr" : "name")),
-                "%" +
-                    filters.getFreeText().toLowerCase()
-                        .replace("!", "!!")
-                        .replace("%", "!%")
-                        .replace("_", "!_")
-                        .replace("*", "%")
-                    + "%"
+    private Predicate getItemPredicate(Root<Wish> root, CriteriaBuilder builder) {
+        if (filters.getItems() != null) {
+            return root.<Item>get("item").<Integer>get("itemId").in(
+                filters.getItems()
             );
         }
         return null;

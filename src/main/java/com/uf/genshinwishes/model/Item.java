@@ -30,9 +30,6 @@ public class Item implements Serializable {
     private String name;
 
     @Column(nullable = false)
-    private String nameFr;
-
-    @Column(nullable = false)
     private String itemType;
 
     @Column(nullable = false)

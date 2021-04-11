@@ -10,7 +10,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder(toBuilder=true)
 public class WishFilterDTO {
-    private String freeText;
+    private List<Integer> items;
     private Boolean fr;
     private List<Integer> ranks;
     private ItemType itemType;
