@@ -50,6 +50,8 @@ spring:
                             - email
                         provider: Discord
                 provider:
+                    facebook:
+                        authorizationUri: https://www.facebook.com/v2.8/dialog/oauth?auth_type=rerequest
                     Discord:
                         authorizationUri: https://discord.com/api/v8/oauth2/authorize
                         tokenUri: https://discord.com/api/v8/oauth2/token
