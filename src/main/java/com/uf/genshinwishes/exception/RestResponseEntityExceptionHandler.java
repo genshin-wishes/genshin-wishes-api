@@ -17,6 +17,6 @@ public class RestResponseEntityExceptionHandler
     protected ResponseEntity<Object> handleConflict(
         RuntimeException ex, WebRequest request) {
         return handleExceptionInternal(ex, ((ApiError) ex).getErrorType(),
-            new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR, request);
+            new HttpHeaders(), ((ApiError) ex).getErrorType().getStatus(), request);
     }
 }
