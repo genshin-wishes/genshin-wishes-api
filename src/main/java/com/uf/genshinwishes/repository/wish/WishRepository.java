@@ -22,7 +22,7 @@ public interface WishRepository extends PagingAndSortingRepository<Wish, Long>, 
     @Query(value = """
         select max(w.index) from wishes w
         join items i on w.item_id = i.item_id
-        where w.index < :wishIndex and w.user_id = :userId and w.gacha_type = :gachaType
+        where w.index <= :wishIndex and w.user_id = :userId and w.gacha_type = :gachaType
         and i.rank_type = :rankType
         """, nativeQuery = true)
     Long findMaxIndexByUserAndRankTypeAndGachaTypeAndWishIndex(Long userId, Integer rankType, Integer gachaType, Long wishIndex);

@@ -12,26 +12,32 @@ import com.uf.genshinwishes.dto.mihoyo.MihoyoUserDTO;
 import com.uf.genshinwishes.dto.mihoyo.MihoyoWishLogDTO;
 import com.uf.genshinwishes.exception.ApiError;
 import com.uf.genshinwishes.exception.ErrorType;
+import com.uf.genshinwishes.exception.ExceptionHandlerFilter;
 import com.uf.genshinwishes.model.*;
 import com.uf.genshinwishes.repository.ItemRepository;
 import com.uf.genshinwishes.repository.wish.WishRepository;
 import com.uf.genshinwishes.repository.wish.WishSpecification;
 import com.uf.genshinwishes.service.mihoyo.MihoyoImRestClient;
 import com.uf.genshinwishes.service.mihoyo.MihoyoRestClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Service
 public class WishService {
-    private final static Integer COUNT_REMOVE_DELAY = 2000;
+    Logger logger = LoggerFactory.getLogger(WishService.class);
 
     @Autowired
     private WishRepository wishRepository;
@@ -47,6 +53,8 @@ public class WishService {
     private WishMapper wishMapper;
     @Autowired
     private ImportingStateService importingStateService;
+
+    private List<Item> items;
 
     @Transactional
     public void importWishes(User user, String authkey) {
@@ -115,62 +123,83 @@ public class WishService {
     }
 
     private void runImportFor(Map<Integer, ImportingBannerState> stateByGachaType, User user, String authkey) {
+        // Refresh item list
+        items = itemRepository.findAll();
+
         Optional<Wish> ifLastWish = wishRepository.findFirstByUserOrderByTimeDescIdDesc(user);
         Optional<LocalDateTime> ifLastWishDate = ifLastWish.map(Wish::getTime);
         Map<BannerType, Long> oldCounts = countAllByUser(user);
+        Instant now = Instant.now();
 
-        List<Wish> bannerWishes = Lists.newArrayList();
+        List<Wish> cumulatedWishes = Lists.newArrayList();
 
         List<CompletableFuture<Void>> futures = BannerType.getBannersExceptAll().map(bannerType -> CompletableFuture.runAsync(() -> {
-            // Attach user to wishes
             ImportingBannerState bannerState = stateByGachaType.get(bannerType.getType());
-            List<Wish> wishes = paginateWishesOlderThanDate(bannerState, authkey, bannerType, ifLastWishDate);
 
-            importingStateService.finish(bannerState);
+            try {
+                List<Wish> wishes = paginateWishesOlderThanDate(bannerState, authkey, bannerType, ifLastWishDate);
 
-            // Most recent = highest ID
-            Collections.reverse(wishes);
+                importingStateService.finish(bannerState);
 
-            wishes = wishes.stream().map((wish) -> {
-                long index = oldCounts.getOrDefault(bannerType, 0L) + 1;
+                AtomicReference<Long> last5Star = new AtomicReference<>(wishRepository.findMaxIndexByUserAndRankTypeAndGachaTypeAndWishIndex(user.getId(), 5, bannerType.getType(), oldCounts.getOrDefault(bannerType, 0L)));
+                AtomicReference<Long> last4Star = new AtomicReference<>(wishRepository.findMaxIndexByUserAndRankTypeAndGachaTypeAndWishIndex(user.getId(), 4, bannerType.getType(), oldCounts.getOrDefault(bannerType, 0L)));
 
-                wish.setUser(user);
-                wish.setIndex(index);
+                if (last5Star.get() == null) last5Star.set(0L);
+                if (last4Star.get() == null) last4Star.set(0L);
 
-                oldCounts.put(bannerType, index);
+                // Most recent = highest ID
+                Collections.reverse(wishes);
 
-                return wish;
-            }).collect(Collectors.toList());
+                wishes = wishes.stream().map((wish) -> {
+                    long index = oldCounts.getOrDefault(bannerType, 0L) + 1;
 
+                    wish.setUser(user);
+                    switch (wish.getItem().getRankType()) {
+                        case 5:
+                            wish.setPity(index - last5Star.get());
+                            last5Star.set(index);
+                            break;
+                        case 4:
+                            wish.setPity(index - last4Star.get());
+                            last4Star.set(index);
+                            break;
+                    }
+                    wish.setImportDate(now);
+                    wish.setIndex(index);
 
-            supplyItemId(wishes);
+                    oldCounts.put(bannerType, index);
 
-            bannerWishes.addAll(wishes);
+                    return wish;
+                }).collect(Collectors.toList());
+
+                cumulatedWishes.addAll(wishes);
+            } catch (ApiError e) {
+                importingStateService.markError(bannerState, e);
+                throw new CompletionException(e);
+            } catch (Exception e) {
+                importingStateService.markError(bannerState, new ApiError(ErrorType.ERROR));
+                throw new CompletionException(e);
+            }
         })).collect(Collectors.toList());
 
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[]{}))
-            .thenApply(ignored ->
-                futures.stream().map(CompletableFuture::join).collect(Collectors.toList())
-            ).thenRun(() -> {
+            .thenApply(ignored -> futures.stream()
+                .map(CompletableFuture::join)
+                .collect(Collectors.toList()))
+            .thenRun(() -> {
+                wishRepository.saveAll(cumulatedWishes);
 
-            wishRepository.saveAll(bannerWishes);
+                BannerType.getBannersExceptAll().forEach(b ->
+                    importingStateService.markSaved(stateByGachaType.get(b.getType())));
+            })
+            .exceptionally((err) -> {
+                logger.error("Could not import for #{}", user.getId(), err.getCause());
 
-            BannerType.getBannersExceptAll().forEach(b ->
-                importingStateService.markSaved(stateByGachaType.get(b.getType())));
-        });
-    }
+                BannerType.getBannersExceptAll().forEach(b ->
+                    importingStateService.markError(stateByGachaType.get(b.getType()), new ApiError(ErrorType.ERROR)));
 
-    private void supplyItemId(List<Wish> wishes) {
-        List<Item> items = itemRepository.findAll();
-
-        wishes.forEach(wish -> {
-            Item item = items.stream()
-                .filter(i -> i.getName().equals(wish.getItemName()))
-                .findFirst()
-                .orElse(null);
-
-            wish.setItem(item);
-        });
+                return null;
+            });
     }
 
     private List<MihoyoWishLogDTO> getWishesForPage(String authkey, BannerType bannerType, String lastWishId, Integer page) {
@@ -185,7 +214,7 @@ public class WishService {
 
         while (!(pageWishes = getWishesForPage(authkey, bannerType, lastWishId, currentPage++)).isEmpty()) {
             List<Wish> internalWishes = pageWishes.stream()
-                .map(wish -> wishMapper.fromMihoyo(wish))
+                .map(wish -> wishMapper.fromMihoyo(wish, items))
                 .collect(Collectors.toList());
 
             // We got a wish that's older than the last import
@@ -193,7 +222,7 @@ public class WishService {
                 if (internalWishes.get(internalWishes.size() - 1).getTime().compareTo(ifLastWishDate.get()) <= 0) {
 
                     List<Wish> filteredWishes = pageWishes.stream()
-                        .map(wish -> wishMapper.fromMihoyo(wish))
+                        .map(wish -> wishMapper.fromMihoyo(wish, items))
                         .filter(wish -> wish.getTime().isAfter(ifLastWishDate.get()))
                         .collect(Collectors.toList());
                     wishes.addAll(filteredWishes);
@@ -211,7 +240,7 @@ public class WishService {
         }
 
         if (!wishes.isEmpty()) {
-            Wish firstWish = wishMapper.fromMihoyo(getWishesForPage(authkey, bannerType, null, 1).get(0));
+            Wish firstWish = wishMapper.fromMihoyo(getWishesForPage(authkey, bannerType, null, 1).get(0), items);
 
             if (!wishes.get(0).getTime().equals(firstWish.getTime())) {
                 throw new ApiError(ErrorType.NEW_WISHES_DURING_IMPORT);

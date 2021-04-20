@@ -19,8 +19,6 @@ public class StatsDTO {
     private Long count4Stars;
     private Long count5Stars;
 
-    private Long indexOfLast4;
-    private Long indexOfLast5;
     private List<WishDTO> wishes;
 
     private List<CountPerDayDTO> countPerDay;

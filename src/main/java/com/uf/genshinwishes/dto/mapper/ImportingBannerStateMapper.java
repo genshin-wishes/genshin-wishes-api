@@ -16,6 +16,7 @@ public class ImportingBannerStateMapper {
         importStateDTO.setCount(bannerState.getCount());
         importStateDTO.setFinished(bannerState.getFinished());
         importStateDTO.setSaved(bannerState.getSaved());
+        importStateDTO.setError(bannerState.getError());
 
         return importStateDTO;
     }

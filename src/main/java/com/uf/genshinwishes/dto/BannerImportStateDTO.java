@@ -15,4 +15,5 @@ public class BannerImportStateDTO {
     private Integer count;
     private boolean finished;
     private boolean saved;
+    private String error;
 }

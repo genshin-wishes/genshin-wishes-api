@@ -3,6 +3,8 @@ package com.uf.genshinwishes.service;
 import com.uf.genshinwishes.config.MihoyoRestTemplate;
 import com.uf.genshinwishes.dto.BannerImportStateDTO;
 import com.uf.genshinwishes.dto.mapper.ImportingBannerStateMapper;
+import com.uf.genshinwishes.exception.ApiError;
+import com.uf.genshinwishes.exception.ErrorType;
 import com.uf.genshinwishes.model.BannerType;
 import com.uf.genshinwishes.model.ImportingBannerState;
 import com.uf.genshinwishes.model.ImportingState;
@@ -92,6 +94,12 @@ public class ImportingStateService {
         updateState(bannerState);
     }
 
+    public void markError(ImportingBannerState bannerState, ApiError error) {
+        bannerState.setError(error.getErrorType().name());
+
+        updateState(bannerState);
+    }
+
     public void increment(ImportingBannerState bannerState, int increment) {
         if (bannerState.getCount() == -1)
             bannerState.setCount(increment);
@@ -105,8 +113,12 @@ public class ImportingStateService {
     public void deleteImportantStateOf(User user) {
         ImportingState state = this.importingStateRepository.findFirstByUser(user);
 
-        if (state != null && state.getBannerStates().stream().allMatch(s -> s.getFinished())) {
+        if (state != null
+            && (state.getBannerStates().stream().allMatch(s -> s.getSaved())
+            || state.getBannerStates().stream().anyMatch(s -> s.getError() != null))) {
             this.importingStateRepository.deleteAllByUser(user);
+        } else {
+            throw new ApiError(ErrorType.ALREADY_IMPORTING);
         }
     }
 
