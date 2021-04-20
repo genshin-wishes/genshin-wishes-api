@@ -9,6 +9,7 @@ import org.hibernate.annotations.NotFound;
 import org.hibernate.annotations.NotFoundAction;
 
 import javax.persistence.*;
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Getter
@@ -24,24 +25,23 @@ public class Wish {
     @Column(nullable = false)
     private Long index;
 
+    @Column
+    private Long pity;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @Column(nullable = false)
-    private String uid;
-
-    @Column(nullable = false)
     private Integer gachaType;
 
     @ManyToOne
-    @NotFound(action = NotFoundAction.IGNORE)
     @JoinColumn(name = "item_id", referencedColumnName = "item_id")
     private Item item;
 
-    @Column
-    private String itemName;
-
     @Column(nullable = false)
     private LocalDateTime time;
+
+    @Column(nullable = false)
+    private Instant importDate;
 }

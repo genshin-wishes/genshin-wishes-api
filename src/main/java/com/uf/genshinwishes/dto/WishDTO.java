@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class WishDTO {
     private Long index;
+    private Long pity;
     private Integer gachaType;
     private Long itemId;
     private Long bannerId;

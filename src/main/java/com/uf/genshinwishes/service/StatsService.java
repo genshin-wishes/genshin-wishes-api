@@ -60,11 +60,6 @@ public class StatsService {
         List<WishDTO> wishDTOs = wishes.stream()
             .map(wishMapper::toDto).collect(Collectors.toList());
 
-        if (!wishes.isEmpty()) {
-            stats.setIndexOfLast4(wishRepository.findMaxIndexByUserAndRankTypeAndGachaTypeAndWishIndex(user.getId(), 4, bannerType.getType(), wishes.get(0).getIndex()));
-            stats.setIndexOfLast5(wishRepository.findMaxIndexByUserAndRankTypeAndGachaTypeAndWishIndex(user.getId(), 5, bannerType.getType(), wishes.get(0).getIndex()));
-        }
-
         stats.setWishes(wishDTOs);
 
         stats.setCountPerDay(getCountPerDay(allRanksSpecifications, bannerType == BannerType.ALL));
