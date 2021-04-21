@@ -42,6 +42,6 @@ public class Wish {
     @Column(nullable = false)
     private LocalDateTime time;
 
-    @Column(nullable = false)
+    @Column
     private Instant importDate;
 }
