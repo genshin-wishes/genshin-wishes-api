@@ -17,6 +17,7 @@ public class BannerMapper {
         BannerDTO bannerDTO = new BannerDTO();
 
         bannerDTO.setId(banner.getId());
+        bannerDTO.setVersion(banner.getVersion());
         bannerDTO.setItems(banner.getItems());
         bannerDTO.setGachaType(BannerType.from(banner.getGachaType()).orElse(null));
         bannerDTO.setImage(banner.getImage());

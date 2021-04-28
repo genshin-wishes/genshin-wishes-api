@@ -17,6 +17,7 @@ import java.util.List;
 @AllArgsConstructor
 public class BannerDTO {
     private Long id;
+    private String version;
     private List<Item> items;
     private LocalDateTime start;
     private LocalDateTime end;

@@ -22,6 +22,9 @@ public class Banner {
     @Id
     private Long id;
 
+    @Column
+    private String version;
+
     @ManyToMany
     @NotFound(action = NotFoundAction.IGNORE)
     @JoinTable(
