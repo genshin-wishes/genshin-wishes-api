@@ -122,6 +122,10 @@ public class WishService {
         return this.wishRepository.findByUserOrderByGachaTypeAscIndexAsc(user);
     }
 
+    public Long getWishesCount() {
+        return wishRepository.count();
+    }
+
     private void runImportFor(Map<Integer, ImportingBannerState> stateByGachaType, User user, String authkey) {
         // Refresh item list
         items = itemRepository.findAll();

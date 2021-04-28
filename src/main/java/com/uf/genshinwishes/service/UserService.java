@@ -136,6 +136,10 @@ public class UserService {
         userRepository.save(user);
     }
 
+    public Long getUsersCount() {
+        return userRepository.countByMihoyoUsernameIsNotNull();
+    }
+
     public static int getRegionOffset(User user) {
         if (user.getMihoyoUid() == null || user.getMihoyoUid().isEmpty()) return 0;
 
