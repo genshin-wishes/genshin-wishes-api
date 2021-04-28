@@ -28,8 +28,8 @@ import java.util.stream.Collectors;
 @AllArgsConstructor(onConstructor = @__(@Autowired))
 public class ImportingStateService {
     private MihoyoRestTemplate mihoyoRestTemplate;
-    private ImportingStateRepository importingStateRepository;
     private ImportingBannerStateRepository importingBannerStateRepository;
+    private ImportingStateRepository importingStateRepository;
     private ImportingBannerStateMapper bannerStateMapper;
 
     public Map<BannerType, BannerImportStateDTO> getImportingStateDtoFor(User user) {
@@ -43,18 +43,14 @@ public class ImportingStateService {
             .collect(Collectors.toMap(BannerImportStateDTO::getBannerType, Function.identity()));
     }
 
+    @Transactional
     public Map<Integer, ImportingBannerState> initializeImport(User user) {
-        if (importingStateRepository.findFirstByUser(user) != null) {
-            return null;
-        }
-
         Instant now = Instant.now();
         ImportingState importState = new ImportingState();
 
         importState.setUser(user);
         importState.setCreationDate(now);
         importState.setLastModifiedDate(now);
-
 
         List<ImportingBannerState> bannerStates = BannerType.getBannersExceptAll()
             .map(b -> {
@@ -72,9 +68,17 @@ public class ImportingStateService {
 
         importState.setBannerStates(bannerStates);
 
-        try {
-            importingStateRepository.save(importState);
-        } catch (DataIntegrityViolationException e) {
+        if (importingStateRepository.findFirstByUserOrderByCreationDateAsc(user) != null) {
+            return null;
+        }
+
+        importingStateRepository.save(importState);
+
+        ImportingState mostRecentState = importingStateRepository.findFirstByUserOrderByCreationDateAsc(user);
+
+        if(mostRecentState.getId() != importState.getId()) {
+            importingStateRepository.delete(importState);
+
             return null;
         }
 
@@ -85,19 +89,19 @@ public class ImportingStateService {
     public void finish(ImportingBannerState bannerState) {
         bannerState.setFinished(true);
 
-        updateState(bannerState);
+        importingBannerStateRepository.save(bannerState);
     }
 
     public void markSaved(ImportingBannerState bannerState) {
         bannerState.setSaved(true);
 
-        updateState(bannerState);
+        importingBannerStateRepository.save(bannerState);
     }
 
     public void markError(ImportingBannerState bannerState, ApiError error) {
         bannerState.setError(error.getErrorType().name());
 
-        updateState(bannerState);
+        importingBannerStateRepository.save(bannerState);
     }
 
     public void increment(ImportingBannerState bannerState, int increment) {
@@ -110,8 +114,8 @@ public class ImportingStateService {
     }
 
     @Transactional
-    public void deleteImportantStateOf(User user) {
-        ImportingState state = this.importingStateRepository.findFirstByUser(user);
+    public void deleteImportStateOf(User user) {
+        ImportingState state = this.importingStateRepository.findFirstByUserOrderByCreationDateAsc(user);
 
         if (state != null
             && (state.getBannerStates().stream().allMatch(s -> s.getSaved())
@@ -130,7 +134,7 @@ public class ImportingStateService {
     }
 
     private ImportingState getByUser(User user) {
-        return this.importingStateRepository.findFirstByUser(user);
+        return this.importingStateRepository.findFirstByUserOrderByCreationDateAsc(user);
     }
 
     private void updateState(ImportingBannerState bannerState) {

@@ -8,7 +8,7 @@ import java.time.Instant;
 
 public interface ImportingStateRepository extends JpaRepository<ImportingState, Long> {
 
-    ImportingState findFirstByUser(User user);
+    ImportingState findFirstByUserOrderByCreationDateAsc(User user);
 
     void deleteAllByUser(User user);
 

@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class ImportingStateCleanerService {
-    public final static int STATES_CLEANER_DELAY = 10 * 1000;
+    public final static int STATES_CLEANER_DELAY = 5 * 60 * 1000;
 
     @Autowired
     private ImportingStateService importingStateService;

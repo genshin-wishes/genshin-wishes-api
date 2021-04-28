@@ -20,7 +20,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.net.UnknownHostException;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -93,7 +92,7 @@ public class WishController {
     }
     @DeleteMapping("/importState")
     public void deleteImportState(User user) {
-        importingStateService.deleteImportantStateOf(user);
+        importingStateService.deleteImportStateOf(user);
     }
 
     @GetMapping("/import")
