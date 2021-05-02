@@ -3,6 +3,7 @@ package com.uf.genshinwishes.controller;
 import com.uf.genshinwishes.service.UserService;
 import com.uf.genshinwishes.service.WishService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -29,11 +30,13 @@ public class PublicController {
     }
 
     @GetMapping("/users/count")
+    @Cacheable("usersCount")
     public Long getUsersCount() {
         return this.userService.getUsersCount();
     }
 
     @GetMapping("/wishes/count")
+    @Cacheable("wishesCount")
     public Long getWishesCount() {
         return this.wishService.getWishesCount();
     }
