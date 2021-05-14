@@ -22,7 +22,7 @@ public class BannerService {
     private BannerRepository bannerRepository;
     private BannerMapper bannerMapper;
 
-    public Map<Integer, BannerDTO> getBannerToEventMap(User user) {
+    public Map<Integer, BannerDTO> getLatestBannerToEventMap(User user) {
         HashMap<Integer, BannerDTO> bannerToEvent = Maps.newHashMap();
 
         BannerType.getBannersExceptAll().forEach(banner ->
@@ -33,7 +33,11 @@ public class BannerService {
         return bannerToEvent;
     }
 
-    public List<BannerDTO> findAll(User user) {
+    public List<BannerDTO> findAll() {
+        return bannerRepository.findAll().stream().map(bannerMapper::toDto).collect(Collectors.toList());
+    }
+
+    public List<BannerDTO> findAllForUser(User user) {
         return bannerRepository.findAll().stream().map(b -> bannerMapper.toDto(user, b)).collect(Collectors.toList());
     }
 

@@ -34,7 +34,7 @@ public class StatsService {
     private WishMapper wishMapper;
 
     public StatsDTO getStatsFor(User user, BannerType bannerType, WishFilterDTO filters) {
-        List<BannerDTO> banners = bannerService.findAll(user);
+        List<BannerDTO> banners = bannerService.findAll();
         filters.setRanks(Arrays.asList(4, 5));
         WishSpecification specification = WishSpecification.builder().user(user).bannerType(bannerType).banners(banners).filters(filters).build();
 
@@ -67,9 +67,9 @@ public class StatsService {
         return stats;
     }
 
-    public List<CountPerDayDTO> getCountPerDay(WishSpecification specification, boolean perBanner) {
+    public List<CountPerRankAndDay> getCountPerDay(WishSpecification specification, boolean perBanner) {
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
-        CriteriaQuery<CountPerDayDTO> query = criteriaBuilder.createQuery(CountPerDayDTO.class);
+        CriteriaQuery<CountPerRankAndDay> query = criteriaBuilder.createQuery(CountPerRankAndDay.class);
         Root<Wish> root = query.from(Wish.class);
 
         Expression<LocalDate> dateTrunc = criteriaBuilder.function("DATE_TRUNC", Date.class, criteriaBuilder.literal("WEEK"), root.get("time")).as(LocalDate.class);

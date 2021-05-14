@@ -2,6 +2,7 @@ package com.uf.genshinwishes.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.ToString;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -9,6 +10,7 @@ import java.util.stream.Stream;
 
 @Getter
 @AllArgsConstructor
+@ToString
 public enum BannerType {
     ALL(-1),
     NOVICE(100),

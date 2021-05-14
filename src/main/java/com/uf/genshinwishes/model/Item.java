@@ -9,7 +9,6 @@ import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.util.List;
 
 @Entity(name = "items")
 @Where(clause="published_at is not null")

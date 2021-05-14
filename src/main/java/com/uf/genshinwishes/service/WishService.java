@@ -12,7 +12,6 @@ import com.uf.genshinwishes.dto.mihoyo.MihoyoUserDTO;
 import com.uf.genshinwishes.dto.mihoyo.MihoyoWishLogDTO;
 import com.uf.genshinwishes.exception.ApiError;
 import com.uf.genshinwishes.exception.ErrorType;
-import com.uf.genshinwishes.exception.ExceptionHandlerFilter;
 import com.uf.genshinwishes.model.*;
 import com.uf.genshinwishes.repository.ItemRepository;
 import com.uf.genshinwishes.repository.wish.WishRepository;
@@ -22,6 +21,8 @@ import com.uf.genshinwishes.service.mihoyo.MihoyoRestClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -96,7 +97,7 @@ public class WishService {
     }
 
     public List<WishDTO> findByUserAndBannerType(User user, BannerType bannerType, Integer page, WishFilterDTO filters) {
-        List<BannerDTO> banners = bannerService.findAll(user);
+        List<BannerDTO> banners = bannerService.findAllForUser(user);
         List<Wish> wishes = this.wishRepository.findAll(
             WishSpecification.builder().user(user).bannerType(bannerType).banners(banners).filters(filters).build(),
             PageRequest.of(page, 10, Sort.by(Sort.Direction.DESC, "time", "id"))
@@ -106,7 +107,7 @@ public class WishService {
     }
 
     public Long countAllByUserAndGachaType(User user, BannerType bannerType, WishFilterDTO filters) {
-        List<BannerDTO> banners = bannerService.findAll(user);
+        List<BannerDTO> banners = bannerService.findAllForUser(user);
         return this.wishRepository.count(WishSpecification.builder().user(user).bannerType(bannerType).banners(banners).filters(filters).build());
     }
 
@@ -122,7 +123,13 @@ public class WishService {
         return this.wishRepository.findByUserOrderByGachaTypeAscIndexAsc(user);
     }
 
+    @Cacheable("wishesCount")
     public Long getWishesCount() {
+        return this.updateWishesCount();
+    }
+
+    @CachePut("wishesCount")
+    public Long updateWishesCount() {
         return wishRepository.count();
     }
 

@@ -3,6 +3,7 @@ package com.uf.genshinwishes.service;
 import com.uf.genshinwishes.dto.mihoyo.MihoyoUserDTO;
 import com.uf.genshinwishes.exception.ApiError;
 import com.uf.genshinwishes.exception.ErrorType;
+import com.uf.genshinwishes.model.Region;
 import com.uf.genshinwishes.model.User;
 import com.uf.genshinwishes.repository.UserRepository;
 import com.uf.genshinwishes.service.mihoyo.MihoyoImRestClient;
@@ -10,6 +11,8 @@ import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -78,6 +81,20 @@ public class UserService {
     private void linkToMihoyo(User user, String authkey) {
         MihoyoUserDTO mihoyoUser = mihoyoImRestClient.getUserInfo(Optional.empty(), authkey);
 
+        char region = mihoyoUser.getUser_id().charAt(0);
+        switch(region) {
+            case '6':
+                user.setRegion(Region.AMERICA.getPrefix());
+                break;
+            case '7':
+                user.setRegion(Region.EUROPE.getPrefix());
+                break;
+            default:
+            case '8':
+                user.setRegion(Region.ASIA.getPrefix());
+                break;
+        }
+
         user.setMihoyoUid(mihoyoUser.getUser_id());
         user.setMihoyoUsername(mihoyoUser.getNickname());
 
@@ -130,27 +147,34 @@ public class UserService {
         return userRepository.findByProfileId(profileId);
     }
 
+    @Cacheable("usersCount")
+    public Long getUsersCount() {
+        return this.updateUsersCount();
+    }
+
+    @CachePut("usersCount")
+    public Long updateUsersCount() {
+        return userRepository.countByMihoyoUsernameIsNotNull();
+    }
+
     public void share(User user, boolean share) {
         user.setSharing(share);
 
         userRepository.save(user);
     }
 
-    public Long getUsersCount() {
-        return userRepository.countByMihoyoUsernameIsNotNull();
+    public Long count() {
+        return this.userRepository.count();
     }
 
-    public static int getRegionOffset(User user) {
-        if (user.getMihoyoUid() == null || user.getMihoyoUid().isEmpty()) return 0;
-
-        switch (user.getMihoyoUid().charAt(0)) {
-            case '6':
+    public static int getRegionOffset(Region region) {
+        switch (region) {
+            case AMERICA:
                 return 5;
-            case '7':
+            case EUROPE:
                 return -1;
             default:
-                logger.info("No region from user region {}, using Asia as default", user.getMihoyoUid());
-            case '8':
+            case ASIA:
                 return -8;
         }
     }

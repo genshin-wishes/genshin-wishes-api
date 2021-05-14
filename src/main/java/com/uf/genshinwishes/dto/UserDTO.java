@@ -12,6 +12,7 @@ import lombok.Setter;
 public class UserDTO {
     private String email;
     private String lang;
+    private String region;
     private Boolean wholeClock;
     private String mihoyoUsername;
     private String mihoyoUid;

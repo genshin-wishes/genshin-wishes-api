@@ -9,6 +9,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder=true)
+@ToString
 public class WishFilterDTO {
     private List<Integer> items;
     private Boolean fr;

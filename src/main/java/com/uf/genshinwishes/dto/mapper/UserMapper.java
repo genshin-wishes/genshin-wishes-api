@@ -15,6 +15,7 @@ public class UserMapper {
         userDTO.setLang(user.getLang());
         userDTO.setWholeClock(user.getWholeClock());
         userDTO.setMihoyoUid(user.getMihoyoUid());
+        userDTO.setRegion(user.getRegion());
         userDTO.setMihoyoUsername(user.getMihoyoUsername());
         userDTO.setProfileId(user.getProfileId());
         userDTO.setSharing(user.getSharing());

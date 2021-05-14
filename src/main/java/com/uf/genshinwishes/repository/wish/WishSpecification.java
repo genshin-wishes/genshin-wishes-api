@@ -15,6 +15,8 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -35,19 +37,22 @@ public class WishSpecification implements Specification<Wish> {
 
     @Override
     public Predicate toPredicate(Root<Wish> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder builder) {
-        if (user == null || bannerType == null || banners == null) throw new ApiError(ErrorType.INVALID_FILTERS);
+        if (bannerType == null || banners == null) throw new ApiError(ErrorType.INVALID_FILTERS);
 
         List<Predicate> predicates = Lists.newArrayList();
 
         // Mandatory
-        predicates.add(builder.equal(root.<User>get("user"), user));
         if (!BannerType.ALL.equals(bannerType))
             predicates.add(builder.equal(root.<Integer>get("gachaType"), bannerType.getType()));
 
         // Optional
+        if (user != null) {
+            predicates.add(builder.equal(root.<User>get("user"), user));
+        }
+
         if (filters != null) {
-            predicates.add(getItemPredicate(root, builder));
-            predicates.add(getRankPredicate(root, builder));
+            predicates.add(getItemPredicate(root));
+            predicates.add(getRankPredicate(root));
             predicates.add(getItemTypePredicate(root, builder));
             predicates.add(getDatePredicate(root, builder));
         }
@@ -55,7 +60,7 @@ public class WishSpecification implements Specification<Wish> {
         return builder.and(predicates.stream().filter(predicate -> predicate != null).toArray(Predicate[]::new));
     }
 
-    private Predicate getItemPredicate(Root<Wish> root, CriteriaBuilder builder) {
+    private Predicate getItemPredicate(Root<Wish> root) {
         if (filters.getItems() != null) {
             return root.<Item>get("item").<Integer>get("itemId").in(
                 filters.getItems()
@@ -64,7 +69,7 @@ public class WishSpecification implements Specification<Wish> {
         return null;
     }
 
-    private Predicate getRankPredicate(Root<Wish> root, CriteriaBuilder builder) {
+    private Predicate getRankPredicate(Root<Wish> root) {
         if (filters.getRanks() != null) {
             return root.<Item>get("item").<Integer>get("rankType").in(
                 filters.getRanks()
@@ -88,7 +93,14 @@ public class WishSpecification implements Specification<Wish> {
             List<Predicate> orTime = filters.getEvents().stream().map(event -> {
                 BannerDTO banner = getBanner(event);
 
-                return builder.between(root.get("time"), builder.literal(banner.getStart()), builder.literal(banner.getEnd()));
+                List<Predicate> timePredicates = Arrays.stream(Region.values()).map(region -> {
+                    LocalDateTime start = banner.getStartEndByRegion().get(region)[0];
+                    LocalDateTime end = banner.getStartEndByRegion().get(region)[1];
+
+                    return builder.and(builder.equal(root.get("user").get("region"), region.getPrefix()), builder.between(root.get("time"), builder.literal(start), builder.literal(end)));
+                }).collect(Collectors.toList());
+
+                return builder.or(timePredicates.toArray(new Predicate[]{}));
             }).collect(Collectors.toList());
 
             return builder.or(orTime.toArray(new Predicate[]{}));

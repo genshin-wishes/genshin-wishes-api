@@ -21,6 +21,10 @@ spring:
         port: 6379
     session:
         store-type: redis
+    jpa:
+        properties:
+            hibernate:
+                enable_lazy_load_no_trans: true
     datasource:
         hikari:
             maxLifetime: 60000

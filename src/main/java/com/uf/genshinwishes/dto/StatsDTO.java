@@ -21,5 +21,5 @@ public class StatsDTO {
 
     private List<WishDTO> wishes;
 
-    private List<CountPerDayDTO> countPerDay;
+    private List<CountPerRankAndDay> countPerDay;
 }

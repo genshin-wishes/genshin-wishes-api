@@ -1,7 +1,6 @@
 package com.uf.genshinwishes.security;
 
 import com.uf.genshinwishes.model.User;
-import com.uf.genshinwishes.repository.UserRepository;
 import com.uf.genshinwishes.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;

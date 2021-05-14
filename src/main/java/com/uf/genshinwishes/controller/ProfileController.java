@@ -40,7 +40,7 @@ public class ProfileController {
     public Iterable<BannerDTO> getBanners(@PathVariable("profileId") String profileId) {
         User user = assertUser(profileId);
 
-        return bannerService.findAll(user);
+        return bannerService.findAllForUser(user);
     }
 
     @GetMapping("/banners/character")

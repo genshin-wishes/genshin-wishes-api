@@ -1,7 +1,6 @@
 package com.uf.genshinwishes.service.mihoyo;
 
 import com.uf.genshinwishes.dto.mihoyo.MihoyoInfoRetDTO;
-import com.uf.genshinwishes.dto.mihoyo.MihoyoRetDTO;
 import com.uf.genshinwishes.dto.mihoyo.MihoyoUserDTO;
 import com.uf.genshinwishes.exception.ApiError;
 import com.uf.genshinwishes.exception.ErrorType;

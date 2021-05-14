@@ -19,7 +19,7 @@ public class BannerController {
 
     @GetMapping("")
     public Iterable<BannerDTO> getBanners(User user) {
-        return bannerService.findAll(user);
+        return bannerService.findAllForUser(user);
     }
 
     @GetMapping("/character")
@@ -34,7 +34,7 @@ public class BannerController {
 
     @GetMapping("/latest")
     public Map<Integer, BannerDTO> getLatestEvents(User user) {
-        return bannerService.getBannerToEventMap(user);
+        return bannerService.getLatestBannerToEventMap(user);
     }
 
 }
