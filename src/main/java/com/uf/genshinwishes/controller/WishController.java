@@ -40,7 +40,7 @@ public class WishController {
     public List<WishDTO> getWishes(User user,
                                    @PathVariable("bannerType") BannerType bannerType,
                                    @RequestParam("page") Integer page,
-                                   @RequestParam Optional<List<Integer>> items,
+                                   @RequestParam Optional<List<Long>> items,
                                    @RequestParam Optional<Boolean> fr,
                                    @RequestParam Optional<List<Integer>> ranks,
                                    @RequestParam Optional<ItemType> itemType,
@@ -60,7 +60,7 @@ public class WishController {
 
     @GetMapping("/{bannerType}/count")
     public Long countWishesByBanner(User user, @PathVariable("bannerType") BannerType bannerType,
-                                    @RequestParam Optional<List<Integer>> items,
+                                    @RequestParam Optional<List<Long>> items,
                                     @RequestParam Optional<Boolean> fr,
                                     @RequestParam Optional<List<Integer>> ranks,
                                     @RequestParam Optional<ItemType> itemType,

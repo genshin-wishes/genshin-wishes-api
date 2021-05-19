@@ -5,6 +5,7 @@ import com.uf.genshinwishes.dto.*;
 import com.uf.genshinwishes.exception.ApiError;
 import com.uf.genshinwishes.exception.ErrorType;
 import com.uf.genshinwishes.model.BannerType;
+import com.uf.genshinwishes.model.Item;
 import com.uf.genshinwishes.model.User;
 import com.uf.genshinwishes.model.Wish;
 import com.uf.genshinwishes.repository.wish.WishRepository;
@@ -20,10 +21,9 @@ import javax.persistence.criteria.*;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
-// FIXME refactor (not dry at all)
+// TODO refactor (not dry at all)
 
 @Service
 @AllArgsConstructor(onConstructor = @__(@Autowired))
@@ -66,48 +66,48 @@ public class PublicStatsService {
             .build();
         stats.setCount5Stars(wishRepository.count(fiveStarsSpecifications));
 
-        Map<Integer, BannerDTO> latestBannerToEventMap = this.bannerService.getLatestBannerToEventMap(null);
-        Map<BannerType, LatestEventsCountsDTO> latestEventsCounts = Maps.newHashMap();
+        if (bannerType == BannerType.ALL) {
+            Map<Integer, BannerDTO> latestBannerToEventMap = this.bannerService.getLatestBannerToEventMap(null);
+            Map<BannerType, LatestEventsCountsDTO> latestEventsCounts = Maps.newHashMap();
 
-        Arrays.asList(BannerType.CHARACTER_EVENT, BannerType.WEAPON_EVENT).stream().forEach(banner -> {
-            LatestEventsCountsDTO latestEventsCountsDTO = new LatestEventsCountsDTO();
+            Arrays.asList(BannerType.CHARACTER_EVENT, BannerType.WEAPON_EVENT).stream().forEach(banner -> {
+                LatestEventsCountsDTO latestEventsCountsDTO = new LatestEventsCountsDTO();
 
-            WishFilterDTO filter = WishFilterDTO.builder()
-                .ranks(Arrays.asList(4, 5))
-                .events(Arrays.asList(latestBannerToEventMap.get(banner.getType()).getId()))
-                .build();
-            WishSpecification eventSpecification = WishSpecification.builder()
-                .banners(banners)
-                .bannerType(banner)
-                .filters(filter)
-                .build();
+                WishFilterDTO filter = WishFilterDTO.builder()
+                    .ranks(Arrays.asList(4, 5))
+                    .events(Arrays.asList(latestBannerToEventMap.get(banner.getType()).getId()))
+                    .build();
+                WishSpecification eventSpecification = WishSpecification.builder()
+                    .banners(banners)
+                    .bannerType(banner)
+                    .filters(filter)
+                    .build();
 
-            latestEventsCountsDTO.setCount(wishRepository.count(eventSpecification));
-            latestEventsCountsDTO.setItems(this.getCountPerItemId(eventSpecification));
+                latestEventsCountsDTO.setCount(wishRepository.count(eventSpecification.toBuilder()
+                    .filters(filter.toBuilder().ranks(null).build())
+                    .build()));
+                latestEventsCountsDTO.setItems(this.getCountPerItemId(eventSpecification));
 
-            latestEventsCounts.put(banner, latestEventsCountsDTO);
-        });
+                latestEventsCounts.put(banner, latestEventsCountsDTO);
+            });
 
-        stats.setLatestEventsCounts(latestEventsCounts);
-
-        stats.setUsersPerRegion(getUserPerRegion(allRanksSpecifications));
-
-        stats.setCountPerBanner(getCountPerBanner(allRanksSpecifications));
-
-        if (bannerType == BannerType.CHARACTER_EVENT || bannerType == BannerType.WEAPON_EVENT) {
-            stats.setExclusiveRate5Stars(getExclusiveCount(bannerType, fiveStarsSpecifications));
-            stats.setExclusiveRate4Stars(getExclusiveCount(bannerType, fourStarsSpecifications));
-        }
-
-        if (bannerType != BannerType.ALL) {
+            stats.setLatestEventsCounts(latestEventsCounts);
+        } else {
             stats.setCountPerPity5Stars(getCountPerPity(fiveStarsSpecifications));
             stats.setCountPerPity4Stars(getCountPerPity(fourStarsSpecifications));
+
+            // TODO not ready yet
+//            if (bannerType == BannerType.CHARACTER_EVENT || bannerType == BannerType.WEAPON_EVENT) {
+//                stats.setExclusiveRate5Stars(getExclusiveCount(bannerType, 5, fiveStarsSpecifications));
+//                stats.setExclusiveRate4Stars(getExclusiveCount(bannerType, 4, fourStarsSpecifications));
+//            }
         }
 
-        stats.setCountPerRegion(getCountPerRegion(allRanksSpecifications));
-
-        stats.setCountPerDay(getCountPerDay(allRanksSpecifications));
+        stats.setUsersPerRegion(getUserPerRegion(allRanksSpecifications));
+        stats.setCountPerBanner(getCountPerBanner(allRanksSpecifications));
         stats.setCountPerItemId(getCountPerItemId(fourFiveSpecifications));
+        stats.setCountPerDay(getCountPerDay(allRanksSpecifications));
+        stats.setCountPerRegion(getCountPerRegion(allRanksSpecifications));
 
         return stats;
     }
@@ -117,7 +117,7 @@ public class PublicStatsService {
         CriteriaQuery<CountPerDay> query = criteriaBuilder.createQuery(CountPerDay.class);
         Root<Wish> root = query.from(Wish.class);
 
-        Expression<LocalDate> dateTrunc = criteriaBuilder.function("DATE_TRUNC", Date.class, criteriaBuilder.literal("WEEK"), root.get("time")).as(LocalDate.class);
+        Expression<LocalDate> dateTrunc = criteriaBuilder.function("DATE_TRUNC", Date.class, criteriaBuilder.literal("DAY"), root.get("time")).as(LocalDate.class);
 
         query.where(specification.toPredicate(root, query, criteriaBuilder));
 
@@ -126,15 +126,18 @@ public class PublicStatsService {
         return em.createQuery(query.multiselect(dateTrunc, criteriaBuilder.count(root))).getResultList();
     }
 
-    public Float getExclusiveCount(BannerType bannerType, WishSpecification specification) {
+    public float getExclusiveCount(BannerType bannerType, Integer rank, WishSpecification specification) {
         List<BannerDTO> banners = bannerService.findAll();
         List<Long> events = specification.getFilters().getEvents();
 
-        Map<BannerDTO, List<CountPerItemId>> counterPerItemPerEvent = banners.stream()
+        AtomicLong event = new AtomicLong(0l);
+        AtomicLong total = new AtomicLong(0l);
+
+        banners.stream()
             .filter(b -> b.getStartEndByRegion() != null
                 && b.getGachaType() == bannerType
                 && (events == null || events.isEmpty() || events.contains(b.getId())))
-            .collect(Collectors.toMap(Function.identity(), banner -> {
+            .forEach(banner -> {
                 WishSpecification bannerSpecification = specification.toBuilder()
                     .bannerType(banner.getGachaType())
                     .filters(specification.getFilters().toBuilder()
@@ -142,30 +145,52 @@ public class PublicStatsService {
                         .build())
                     .build();
 
-                CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
-                CriteriaQuery<CountPerItemId> query = criteriaBuilder.createQuery(CountPerItemId.class);
-                Root<Wish> root = query.from(Wish.class);
+                event.addAndGet(wishRepository.count(bannerSpecification.toBuilder()
+                    .filters(bannerSpecification.getFilters().toBuilder()
+                        .items(banner.getItems().stream().map(Item::getItemId).collect(Collectors.toList()))
+                        .build())
+                    .build()));
 
-                query.where(bannerSpecification.toPredicate(root, query, criteriaBuilder));
+                total.addAndGet(wishRepository.count(bannerSpecification));
 
-                query.groupBy(root.get("item").get("itemId"));
+                Long lastNotExclusives = countExclusives(banner, bannerSpecification, rank, true);
+                Long firstExclusives = -1 * countExclusives(banner, bannerSpecification, rank, false);
 
-                return em.createQuery(query.multiselect(root.get("item").get("itemId"), criteriaBuilder.count(root))).getResultList();
-            }));
+                event.addAndGet(lastNotExclusives);
+                event.addAndGet(firstExclusives);
 
-        AtomicLong event = new AtomicLong(0l);
-        AtomicLong total = new AtomicLong(0l);
-
-        counterPerItemPerEvent.forEach((b, list) -> {
-            list.stream().forEach(i -> {
-                if (b.getItems().stream().anyMatch(item -> item.getItemId().equals(i.getItemId())))
-                    event.addAndGet(i.getCount());
-
-                total.addAndGet(i.getCount());
+                total.addAndGet(lastNotExclusives);
+                total.addAndGet(firstExclusives);
             });
-        });
 
-        return total.get() == 0l ? 0f : 1.0f * (total.get() - event.get()) / event.get();
+        return event.get() == 0 ? 0 : (2.0f * event.get() - total.get()) / event.get();
+    }
+
+    private Long countExclusives(BannerDTO banner, WishSpecification bannerSpecification, Integer rank, boolean max) {
+        CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
+        CriteriaQuery<Long> query = criteriaBuilder.createQuery(Long.class);
+        Root<Wish> root = query.from(Wish.class);
+        Subquery<String> subQuery = query.subquery(String.class);
+        Root<Wish> subRoot = subQuery.from(Wish.class);
+
+        subQuery.groupBy(subRoot.get("user"));
+
+        subQuery.where(bannerSpecification.toPredicate(subRoot, query, criteriaBuilder));
+
+        Predicate exclusive = root.get("item").get("itemId").in(banner.getItems().stream().map(Item::getItemId).collect(Collectors.toList()));
+        query.where(criteriaBuilder.and(
+            criteriaBuilder.equal(root.get("gachaType"), banner.getGachaType().getType()),
+            criteriaBuilder.equal(root.get("item").get("rankType"), rank),
+            criteriaBuilder.concat(criteriaBuilder.concat(root.get("user"), ":"), root.get("index")).in(
+                subQuery.select(
+                    criteriaBuilder.concat(criteriaBuilder.concat(subRoot.get("user"), ":"),
+                        max ? criteriaBuilder.max(subRoot.get("index")).as(String.class) : criteriaBuilder.min(subRoot.get("index")).as(String.class))
+                )
+            ),
+            max ? criteriaBuilder.not(exclusive) : exclusive
+        ));
+
+        return em.createQuery(query.select(criteriaBuilder.count(root))).getSingleResult();
     }
 
     public List<CountPerItemId> getCountPerItemId(WishSpecification specification) {

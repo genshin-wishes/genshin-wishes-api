@@ -11,7 +11,7 @@ import java.util.List;
 @Builder(toBuilder=true)
 @ToString
 public class WishFilterDTO {
-    private List<Integer> items;
+    private List<Long> items;
     private Boolean fr;
     private List<Integer> ranks;
     private ItemType itemType;
