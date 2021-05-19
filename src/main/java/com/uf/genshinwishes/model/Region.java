@@ -21,7 +21,7 @@ public enum Region {
 
     public static Region getFromUser(User user) {
         return Arrays.stream(Region.values())
-            .filter(r -> r.getPrefix().equals(user.getMihoyoUid().charAt(0)))
+            .filter(r -> r.getPrefix().equals(user.getRegion()))
             .findFirst().orElse(Region.ASIA);
     }
 }
