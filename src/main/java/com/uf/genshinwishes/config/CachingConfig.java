@@ -7,6 +7,7 @@ import com.uf.genshinwishes.service.BannerService;
 import com.uf.genshinwishes.service.PublicStatsService;
 import com.uf.genshinwishes.service.UserService;
 import com.uf.genshinwishes.service.WishService;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
@@ -34,6 +35,9 @@ public class CachingConfig {
     @Autowired
     private UserService userService;
 
+    @Getter
+    private boolean loaded = false;
+
     @Bean
     public CacheManager cacheManager() {
         return new ConcurrentMapCacheManager("publicStats", "usersCount", "wishesCount");
@@ -54,6 +58,8 @@ public class CachingConfig {
                     ? b.getId()
                     : null);
         });
+
+        loaded = true;
     }
 
     @Scheduled(fixedDelay = 60000, initialDelay = 0)

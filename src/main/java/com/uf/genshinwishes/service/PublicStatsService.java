@@ -126,72 +126,72 @@ public class PublicStatsService {
         return em.createQuery(query.multiselect(dateTrunc, criteriaBuilder.count(root))).getResultList();
     }
 
-    public float getExclusiveCount(BannerType bannerType, Integer rank, WishSpecification specification) {
-        List<BannerDTO> banners = bannerService.findAll();
-        List<Long> events = specification.getFilters().getEvents();
-
-        AtomicLong event = new AtomicLong(0l);
-        AtomicLong total = new AtomicLong(0l);
-
-        banners.stream()
-            .filter(b -> b.getStartEndByRegion() != null
-                && b.getGachaType() == bannerType
-                && (events == null || events.isEmpty() || events.contains(b.getId())))
-            .forEach(banner -> {
-                WishSpecification bannerSpecification = specification.toBuilder()
-                    .bannerType(banner.getGachaType())
-                    .filters(specification.getFilters().toBuilder()
-                        .events(Arrays.asList(banner.getId()))
-                        .build())
-                    .build();
-
-                event.addAndGet(wishRepository.count(bannerSpecification.toBuilder()
-                    .filters(bannerSpecification.getFilters().toBuilder()
-                        .items(banner.getItems().stream().map(Item::getItemId).collect(Collectors.toList()))
-                        .build())
-                    .build()));
-
-                total.addAndGet(wishRepository.count(bannerSpecification));
-
-                Long lastNotExclusives = countExclusives(banner, bannerSpecification, rank, true);
-                Long firstExclusives = -1 * countExclusives(banner, bannerSpecification, rank, false);
-
-                event.addAndGet(lastNotExclusives);
-                event.addAndGet(firstExclusives);
-
-                total.addAndGet(lastNotExclusives);
-                total.addAndGet(firstExclusives);
-            });
-
-        return event.get() == 0 ? 0 : (2.0f * event.get() - total.get()) / event.get();
-    }
-
-    private Long countExclusives(BannerDTO banner, WishSpecification bannerSpecification, Integer rank, boolean max) {
-        CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
-        CriteriaQuery<Long> query = criteriaBuilder.createQuery(Long.class);
-        Root<Wish> root = query.from(Wish.class);
-        Subquery<String> subQuery = query.subquery(String.class);
-        Root<Wish> subRoot = subQuery.from(Wish.class);
-
-        subQuery.groupBy(subRoot.get("user"));
-
-        subQuery.where(bannerSpecification.toPredicate(subRoot, query, criteriaBuilder));
-
-        Predicate exclusive = root.get("item").get("itemId").in(banner.getItems().stream().map(Item::getItemId).collect(Collectors.toList()));
-        query.where(criteriaBuilder.and(
-            criteriaBuilder.equal(root.get("gachaType"), banner.getGachaType().getType()),
-            criteriaBuilder.equal(root.get("item").get("rankType"), rank),
-            criteriaBuilder.concat(criteriaBuilder.concat(root.get("user"), ":"), root.get("index")).in(
-                subQuery.select(
-                    criteriaBuilder.concat(criteriaBuilder.concat(subRoot.get("user"), ":"),
-                        max ? criteriaBuilder.max(subRoot.get("index")).as(String.class) : criteriaBuilder.min(subRoot.get("index")).as(String.class))
-                )
-            ),
-            max ? criteriaBuilder.not(exclusive) : exclusive
-        ));
-
-        return em.createQuery(query.select(criteriaBuilder.count(root))).getSingleResult();
-    }
+//    public float getExclusiveCount(BannerType bannerType, Integer rank, WishSpecification specification) {
+//        List<BannerDTO> banners = bannerService.findAll();
+//        List<Long> events = specification.getFilters().getEvents();
+//
+//        AtomicLong event = new AtomicLong(0l);
+//        AtomicLong total = new AtomicLong(0l);
+//
+//        banners.stream()
+//            .filter(b -> b.getStartEndByRegion() != null
+//                && b.getGachaType() == bannerType
+//                && (events == null || events.isEmpty() || events.contains(b.getId())))
+//            .forEach(banner -> {
+//                WishSpecification bannerSpecification = specification.toBuilder()
+//                    .bannerType(banner.getGachaType())
+//                    .filters(specification.getFilters().toBuilder()
+//                        .events(Arrays.asList(banner.getId()))
+//                        .build())
+//                    .build();
+//
+//                event.addAndGet(wishRepository.count(bannerSpecification.toBuilder()
+//                    .filters(bannerSpecification.getFilters().toBuilder()
+//                        .items(banner.getItems().stream().map(Item::getItemId).collect(Collectors.toList()))
+//                        .build())
+//                    .build()));
+//
+//                total.addAndGet(wishRepository.count(bannerSpecification));
+//
+//                Long lastNotExclusives = countExclusives(banner, bannerSpecification, rank, true);
+//                Long firstExclusives = -1 * countExclusives(banner, bannerSpecification, rank, false);
+//
+//                event.addAndGet(lastNotExclusives);
+//                event.addAndGet(firstExclusives);
+//
+//                total.addAndGet(lastNotExclusives);
+//                total.addAndGet(firstExclusives);
+//            });
+//
+//        return event.get() == 0 ? 0 : (2.0f * event.get() - total.get()) / event.get();
+//    }
+//
+//    private Long countExclusives(BannerDTO banner, WishSpecification bannerSpecification, Integer rank, boolean max) {
+//        CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
+//        CriteriaQuery<Long> query = criteriaBuilder.createQuery(Long.class);
+//        Root<Wish> root = query.from(Wish.class);
+//        Subquery<String> subQuery = query.subquery(String.class);
+//        Root<Wish> subRoot = subQuery.from(Wish.class);
+//
+//        subQuery.groupBy(subRoot.get("user"));
+//
+//        subQuery.where(bannerSpecification.toPredicate(subRoot, query, criteriaBuilder));
+//
+//        Predicate exclusive = root.get("item").get("itemId").in(banner.getItems().stream().map(Item::getItemId).collect(Collectors.toList()));
+//        query.where(criteriaBuilder.and(
+//            criteriaBuilder.equal(root.get("gachaType"), banner.getGachaType().getType()),
+//            criteriaBuilder.equal(root.get("item").get("rankType"), rank),
+//            criteriaBuilder.concat(criteriaBuilder.concat(root.get("user"), ":"), root.get("index")).in(
+//                subQuery.select(
+//                    criteriaBuilder.concat(criteriaBuilder.concat(subRoot.get("user"), ":"),
+//                        max ? criteriaBuilder.max(subRoot.get("index")).as(String.class) : criteriaBuilder.min(subRoot.get("index")).as(String.class))
+//                )
+//            ),
+//            max ? criteriaBuilder.not(exclusive) : exclusive
+//        ));
+//
+//        return em.createQuery(query.select(criteriaBuilder.count(root))).getSingleResult();
+//    }
 
     public List<CountPerItemId> getCountPerItemId(WishSpecification specification) {
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
