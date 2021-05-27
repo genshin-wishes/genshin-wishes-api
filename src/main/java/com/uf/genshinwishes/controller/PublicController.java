@@ -2,17 +2,18 @@ package com.uf.genshinwishes.controller;
 
 import com.uf.genshinwishes.dto.BannerDTO;
 import com.uf.genshinwishes.dto.PublicStatsDTO;
-import com.uf.genshinwishes.dto.WishFilterDTO;
 import com.uf.genshinwishes.model.BannerType;
 import com.uf.genshinwishes.service.BannerService;
 import com.uf.genshinwishes.service.PublicStatsService;
 import com.uf.genshinwishes.service.UserService;
 import com.uf.genshinwishes.service.WishService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.*;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -37,6 +38,16 @@ public class PublicController {
     @GetMapping("/banners")
     public List<BannerDTO> getBanners() {
         return bannerService.findAll();
+    }
+
+    @GetMapping("/banners/character")
+    public Iterable<BannerDTO> getCharacterEvents() {
+        return bannerService.findAllByGachaTypeOrderByStartDateDesc(BannerType.CHARACTER_EVENT.getType());
+    }
+
+    @GetMapping("/banners/weapon")
+    public Iterable<BannerDTO> getWeaponEvents() {
+        return bannerService.findAllByGachaTypeOrderByStartDateDesc(BannerType.WEAPON_EVENT.getType());
     }
 
     @GetMapping("/banners/latest")

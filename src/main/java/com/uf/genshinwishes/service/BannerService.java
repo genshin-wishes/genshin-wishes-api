@@ -41,6 +41,10 @@ public class BannerService {
         return bannerRepository.findAll().stream().map(b -> bannerMapper.toDto(user, b)).collect(Collectors.toList());
     }
 
+    public List<BannerDTO> findAllByGachaTypeOrderByStartDateDesc(Integer gachaType) {
+        return bannerRepository.findAllByGachaTypeOrderByStartDesc(gachaType).stream().map(bannerMapper::toDto).collect(Collectors.toList());
+    }
+
     public List<BannerDTO> findAllByGachaTypeOrderByStartDateDesc(User user, Integer gachaType) {
         return bannerRepository.findAllByGachaTypeOrderByStartDesc(gachaType).stream().map(b -> bannerMapper.toDto(user, b)).collect(Collectors.toList());
     }
