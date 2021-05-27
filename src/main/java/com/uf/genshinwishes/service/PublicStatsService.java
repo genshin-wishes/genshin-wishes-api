@@ -92,6 +92,7 @@ public class PublicStatsService {
             });
 
             stats.setLatestEventsCounts(latestEventsCounts);
+            stats.setCountPerBanner(getCountPerBanner(allRanksSpecifications));
         } else {
             stats.setCountPerPity5Stars(getCountPerPity(fiveStarsSpecifications));
             stats.setCountPerPity4Stars(getCountPerPity(fourStarsSpecifications));
@@ -104,7 +105,6 @@ public class PublicStatsService {
         }
 
         stats.setUsersPerRegion(getUserPerRegion(allRanksSpecifications));
-        stats.setCountPerBanner(getCountPerBanner(allRanksSpecifications));
         stats.setCountPerItemId(getCountPerItemId(fourFiveSpecifications));
         stats.setCountPerDay(getCountPerDay(allRanksSpecifications));
         stats.setCountPerRegion(getCountPerRegion(allRanksSpecifications));

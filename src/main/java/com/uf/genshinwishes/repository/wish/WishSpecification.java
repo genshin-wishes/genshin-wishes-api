@@ -11,12 +11,10 @@ import lombok.Builder;
 import lombok.NoArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.*;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -97,7 +95,10 @@ public class WishSpecification implements Specification<Wish> {
                     LocalDateTime start = banner.getStartEndByRegion().get(region)[0];
                     LocalDateTime end = banner.getStartEndByRegion().get(region)[1];
 
-                    return builder.and(builder.equal(root.get("user").get("region"), region.getPrefix()), builder.between(root.get("time"), builder.literal(start), builder.literal(end)));
+                    return builder.and(builder.equal(root.get("user").get("region"), region.getPrefix()), builder.between(
+                        builder.function("DATE_TRUNC", Date.class, builder.literal("MINUTE"), root.get("time")).as(LocalDateTime.class),
+                         builder.literal(start),
+                         builder.literal(end)));
                 }).collect(Collectors.toList());
 
                 return builder.or(timePredicates.toArray(new Predicate[]{}));
