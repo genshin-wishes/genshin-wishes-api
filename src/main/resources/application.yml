@@ -5,8 +5,14 @@ app:
     oauth2:
         redirectUri: "${app.client-url}/login/oauth2/callback/{registrationId}"
     mihoyo:
-        im-endpoint: "https://api-os-takumi.mihoyo.com"
-        endpoint: "https://hk4e-api-os.mihoyo.com"
+        region-settings:
+            hk4e_cn:
+                im-endpoint: "https://api-takumi.mihoyo.com"
+                wish-endpoint: "https://hk4e-api.mihoyo.com"
+            hk4e_global:
+                im-endpoint: "https://api-os-takumi.mihoyo.com"
+                wish-endpoint: "https://hk4e-api-os.mihoyo.com"
+
 
 
 management:

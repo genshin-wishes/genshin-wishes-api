@@ -58,7 +58,7 @@ public class WishService {
     private List<Item> items;
 
     @Transactional
-    public void importWishes(User user, String authkey) {
+    public void importWishes(User user, String authkey,String gameBiz) {
         if (Strings.isNullOrEmpty(user.getMihoyoUid())) {
             throw new ApiError(ErrorType.NO_MIHOYO_LINKED);
         }
@@ -69,12 +69,12 @@ public class WishService {
             throw new ApiError(ErrorType.ALREADY_IMPORTING);
         }
 
-        MihoyoUserDTO mihoyoUser = mihoyoImRestClient.getUserInfo(Optional.of(user), authkey);
+        MihoyoUserDTO mihoyoUser = mihoyoImRestClient.getUserInfo(Optional.of(user), authkey,gameBiz);
 
         if (!user.getMihoyoUid().equals(mihoyoUser.getUser_id()))
             throw new ApiError(ErrorType.MIHOYO_UID_DIFFERENT);
 
-        CompletableFuture.runAsync(() -> runImportFor(stateByBanner, user, authkey));
+        CompletableFuture.runAsync(() -> runImportFor(stateByBanner, user, authkey,gameBiz));
     }
 
 
@@ -133,7 +133,7 @@ public class WishService {
         return wishRepository.count();
     }
 
-    private void runImportFor(Map<Integer, ImportingBannerState> stateByGachaType, User user, String authkey) {
+    private void runImportFor(Map<Integer, ImportingBannerState> stateByGachaType, User user, String authkey, String gameBiz) {
         // Refresh item list
         items = itemRepository.findAll();
 
@@ -148,7 +148,7 @@ public class WishService {
             ImportingBannerState bannerState = stateByGachaType.get(bannerType.getType());
 
             try {
-                List<Wish> wishes = paginateWishesOlderThanDate(bannerState, authkey, bannerType, ifLastWishDate);
+                List<Wish> wishes = paginateWishesOlderThanDate(bannerState, authkey, gameBiz, bannerType, ifLastWishDate);
 
                 importingStateService.finish(bannerState);
 
@@ -213,17 +213,17 @@ public class WishService {
             });
     }
 
-    private List<MihoyoWishLogDTO> getWishesForPage(String authkey, BannerType bannerType, String lastWishId, Integer page) {
-        return mihoyoRestClient.getWishes(authkey, bannerType, lastWishId, page);
+    private List<MihoyoWishLogDTO> getWishesForPage(String authkey, String gameBiz, BannerType bannerType, String lastWishId, Integer page) {
+        return mihoyoRestClient.getWishes(authkey, gameBiz, bannerType, lastWishId, page);
     }
 
-    private List<Wish> paginateWishesOlderThanDate(ImportingBannerState bannerState, String authkey, BannerType bannerType, Optional<LocalDateTime> ifLastWishDate) {
+    private List<Wish> paginateWishesOlderThanDate(ImportingBannerState bannerState, String authkey, String gameBiz, BannerType bannerType, Optional<LocalDateTime> ifLastWishDate) {
         List<Wish> wishes = Lists.newLinkedList();
         List<MihoyoWishLogDTO> pageWishes;
         String lastWishId = null;
         int currentPage = 1;
 
-        while (!(pageWishes = getWishesForPage(authkey, bannerType, lastWishId, currentPage++)).isEmpty()) {
+        while (!(pageWishes = getWishesForPage(authkey, gameBiz, bannerType, lastWishId, currentPage++)).isEmpty()) {
             List<Wish> internalWishes = pageWishes.stream()
                 .map(wish -> wishMapper.fromMihoyo(wish, items))
                 .collect(Collectors.toList());
@@ -251,7 +251,7 @@ public class WishService {
         }
 
         if (!wishes.isEmpty()) {
-            Wish firstWish = wishMapper.fromMihoyo(getWishesForPage(authkey, bannerType, null, 1).get(0), items);
+            Wish firstWish = wishMapper.fromMihoyo(getWishesForPage(authkey, gameBiz, bannerType, null, 1).get(0), items);
 
             if (!wishes.get(0).getTime().equals(firstWish.getTime())) {
                 throw new ApiError(ErrorType.NEW_WISHES_DURING_IMPORT);

@@ -22,14 +22,14 @@ public class MihoyoRestClient {
     @Autowired
     private RestTemplate restTemplate;
 
-    private String mihoyoEndpoint;
 
-    MihoyoRestClient(@Value("${app.mihoyo.endpoint}") String mihoyoEndpoint) {
-        this.mihoyoEndpoint = mihoyoEndpoint;
-    }
+    @Autowired
+    private MihoyoGameBizSettingsSelector selector;
 
-    public List<MihoyoWishLogDTO> getWishes(String authkey, BannerType banner, String lastWishId, Integer page) throws ApiError {
-        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(mihoyoEndpoint + "/event/gacha_info/api/getGachaLog")
+
+    public List<MihoyoWishLogDTO> getWishes(String authkey, String gameBiz, BannerType banner, String lastWishId, Integer page) throws ApiError {
+        String url = selector.getWishEndpoint(gameBiz).orElseThrow(() -> new ApiError(ErrorType.NO_SUITABLE_ENDPOINT_FOR_GAME_BIZ));
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url + "/event/gacha_info/api/getGachaLog")
             .queryParam("authkey", authkey)
             .queryParam("init_type", banner.getType())
             .queryParam("gacha_type", banner.getType())
@@ -40,13 +40,13 @@ public class MihoyoRestClient {
             .queryParam("size", 20)
             .queryParam("page", page);
 
-        if(lastWishId != null)
+        if (lastWishId != null)
             builder.queryParam("end_id", lastWishId);
 
         MihoyoWishRetDTO ret;
 
         try {
-           ret = restTemplate.getForEntity(builder.build(true).toUri(), MihoyoWishRetDTO.class).getBody();
+            ret = restTemplate.getForEntity(builder.build(true).toUri(), MihoyoWishRetDTO.class).getBody();
         } catch (Exception e) {
             logger.error("Can't import wishes from mihoyo", e);
             throw new ApiError(ErrorType.MIHOYO_UNREACHABLE);
