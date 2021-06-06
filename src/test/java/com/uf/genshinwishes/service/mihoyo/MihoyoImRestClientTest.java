@@ -5,6 +5,7 @@ import com.uf.genshinwishes.dto.mihoyo.MihoyoUserDTO;
 import com.uf.genshinwishes.exception.ApiError;
 import com.uf.genshinwishes.exception.ErrorType;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -29,8 +30,17 @@ class MihoyoImRestClientTest {
     @Mock
     private RestTemplate restTemplate;
 
+    @Mock
+    private MihoyoGameBizSettingsSelector selector;
+
     @InjectMocks
-    private MihoyoImRestClient mihoyoImRestClient = new MihoyoImRestClient(MIHOYO_ENDPOINT);
+    private MihoyoImRestClient mihoyoImRestClient = new MihoyoImRestClient();
+
+    @BeforeEach
+    public void before() {
+        Mockito.when(selector.getImEndpoint("hk4e_global"))
+            .thenReturn(Optional.of(MIHOYO_ENDPOINT));
+    }
 
     @Test
     void givenMihoyoReturnsMinusOneCode_thenThrowApiError() throws URISyntaxException {
@@ -46,7 +56,7 @@ class MihoyoImRestClientTest {
             .thenReturn(new ResponseEntity<>(retDTO, HttpStatus.OK));
 
         Exception exception = Assertions.assertThrows(RuntimeException.class, () -> {
-            mihoyoImRestClient.getUserInfo(Optional.empty(), "authkey");
+            mihoyoImRestClient.getUserInfo(Optional.empty(), "authkey", "hk4e_global");
         });
 
 
@@ -73,7 +83,7 @@ class MihoyoImRestClientTest {
             .thenReturn(new ResponseEntity<>(retDTO, HttpStatus.OK));
 
         Exception exception = Assertions.assertThrows(RuntimeException.class, () -> {
-            mihoyoImRestClient.getUserInfo(Optional.empty(), "authkey");
+            mihoyoImRestClient.getUserInfo(Optional.empty(), "authkey", "hk4e_global");
         });
 
 
@@ -103,7 +113,7 @@ class MihoyoImRestClientTest {
                 MihoyoInfoRetDTO.class))
             .thenReturn(new ResponseEntity<>(retDTO, HttpStatus.OK));
 
-        MihoyoUserDTO userDto = mihoyoImRestClient.getUserInfo(Optional.empty(), "authkey");
+        MihoyoUserDTO userDto = mihoyoImRestClient.getUserInfo(Optional.empty(), "authkey", "hk4e_global");
 
 
         Mockito.verify(restTemplate, Mockito.times(1)).postForEntity(

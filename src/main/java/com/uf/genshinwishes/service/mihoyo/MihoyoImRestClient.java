@@ -22,18 +22,16 @@ public class MihoyoImRestClient {
     @Autowired
     private RestTemplate restTemplate;
 
-    private String mihoyoImEndpoint;
 
-    MihoyoImRestClient(@Value("${app.mihoyo.im-endpoint}")
-                           String mihoyoImEndpoint) {
-        this.mihoyoImEndpoint = mihoyoImEndpoint;
-    }
+    @Autowired
+    private MihoyoGameBizSettingsSelector selector;
 
-    public MihoyoUserDTO getUserInfo(Optional<User> user, String authkey) throws ApiError {
-        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(mihoyoImEndpoint + "/common/im/userClient/initUserChat")
+    public MihoyoUserDTO getUserInfo(Optional<User> user, String authkey, String gameBiz) throws ApiError {
+        String url = selector.getImEndpoint(gameBiz).orElseThrow(() -> new ApiError(ErrorType.NO_SUITABLE_ENDPOINT_FOR_GAME_BIZ));
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url + "/common/im/userClient/initUserChat")
             .queryParam("authkey", authkey)
             .queryParam("authkey_ver", 1)
-            .queryParam("game_biz", "hk4e_global")
+            .queryParam("game_biz", gameBiz)
             .queryParam("sign_type", 2);
 
         MihoyoInfoRetDTO body = getBody(user, builder);

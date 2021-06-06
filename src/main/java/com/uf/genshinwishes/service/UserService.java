@@ -70,19 +70,19 @@ public class UserService {
     }
 
     @Transactional
-    public void verifyUserIsUnlinkedAndLinkToMihoyo(User user, String authkey) throws ApiError {
+    public void verifyUserIsUnlinkedAndLinkToMihoyo(User user, String authkey, String gameBiz) throws ApiError {
         if (user.getMihoyoUid() != null) {
             return; // already linked so we ignore
         }
 
-        linkToMihoyo(user, authkey);
+        linkToMihoyo(user, authkey, gameBiz);
     }
 
-    private void linkToMihoyo(User user, String authkey) {
-        MihoyoUserDTO mihoyoUser = mihoyoImRestClient.getUserInfo(Optional.empty(), authkey);
+    private void linkToMihoyo(User user, String authkey, String gameBiz) {
+        MihoyoUserDTO mihoyoUser = mihoyoImRestClient.getUserInfo(Optional.empty(), authkey, gameBiz);
 
         char region = mihoyoUser.getUser_id().charAt(0);
-        switch(region) {
+        switch (region) {
             case '6':
                 user.setRegion(Region.AMERICA.getPrefix());
                 break;
@@ -90,6 +90,7 @@ public class UserService {
                 user.setRegion(Region.EUROPE.getPrefix());
                 break;
             default:
+            case '1':
             case '8':
                 user.setRegion(Region.ASIA.getPrefix());
                 break;
@@ -102,10 +103,9 @@ public class UserService {
     }
 
 
-
     @Transactional
-    public void linkNewMihoyoAccountAndDeleteOldWishes(User user, String authkey) throws ApiError {
-        this.linkToMihoyo(user, authkey);
+    public void linkNewMihoyoAccountAndDeleteOldWishes(User user, String authkey, String gameBiz) throws ApiError {
+        this.linkToMihoyo(user, authkey, gameBiz);
 
         wishService.deleteAllUserWishes(user);
     }
@@ -115,7 +115,8 @@ public class UserService {
     }
 
     public void updateLang(User user, String lang) {
-        if (lang == null || "".equals(Locale.forLanguageTag(lang).toString())) throw new ApiError(ErrorType.INVALID_LANG);
+        if (lang == null || "".equals(Locale.forLanguageTag(lang).toString()))
+            throw new ApiError(ErrorType.INVALID_LANG);
 
         user.setLang(lang);
 

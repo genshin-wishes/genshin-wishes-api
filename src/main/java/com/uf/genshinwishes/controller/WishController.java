@@ -90,14 +90,15 @@ public class WishController {
     public Map<BannerType, BannerImportStateDTO> getImportState(User user) {
         return importingStateService.getImportingStateDtoFor(user);
     }
+
     @DeleteMapping("/importState")
     public void deleteImportState(User user) {
         importingStateService.deleteImportStateOf(user);
     }
 
     @GetMapping("/import")
-    public void importWishes(User user, @RequestParam("authkey") String authkey) {
-        wishService.importWishes(user, authkey);
+    public void importWishes(User user, @RequestParam("authkey") String authkey, @RequestParam("game_biz") String gameBiz) {
+        wishService.importWishes(user, authkey, gameBiz);
     }
 
     @GetMapping("/export")
