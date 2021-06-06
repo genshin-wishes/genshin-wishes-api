@@ -83,9 +83,6 @@ public class UserService {
 
         char region = mihoyoUser.getUser_id().charAt(0);
         switch (region) {
-            case '1':
-                user.setRegion(Region.CHINA.getPrefix());
-                break;
             case '6':
                 user.setRegion(Region.AMERICA.getPrefix());
                 break;
@@ -93,6 +90,7 @@ public class UserService {
                 user.setRegion(Region.EUROPE.getPrefix());
                 break;
             default:
+            case '1':
             case '8':
                 user.setRegion(Region.ASIA.getPrefix());
                 break;

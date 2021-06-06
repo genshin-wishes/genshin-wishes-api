@@ -6,7 +6,6 @@ import java.util.Arrays;
 
 @Getter
 public enum Region {
-    CHINA("1"),
     AMERICA("6"),
     EUROPE("7"),
     ASIA("8"),
