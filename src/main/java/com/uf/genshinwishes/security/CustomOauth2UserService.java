@@ -25,10 +25,14 @@ public class CustomOauth2UserService extends DefaultOAuth2UserService {
         Map attributes = oAuth2User.getAttributes();
 
         Object email = attributes.get("email");
+        Object openid = attributes.get("openid");
 
-        if (email == null) throw new OAuth2AuthenticationException(new OAuth2Error("email-permission-required"));
+        if (email == null && openid == null)
+            throw new OAuth2AuthenticationException(new OAuth2Error("permission-required"));
 
-        User user = userService.retrieveOrInsertUser((String) email);
+        String providerAndId = oAuth2UserRequest.getClientRegistration().getRegistrationId() + "_" + openid;
+
+        User user = userService.retrieveOrInsertUser(email != null ? (String) email : providerAndId);
 
         return UserPrincipal.create(user);
     }

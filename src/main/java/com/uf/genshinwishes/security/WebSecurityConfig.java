@@ -7,15 +7,22 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.oauth2.client.endpoint.DefaultAuthorizationCodeTokenResponseClient;
+import org.springframework.security.oauth2.client.endpoint.OAuth2AccessTokenResponseClient;
+import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
+import org.springframework.security.oauth2.client.http.OAuth2ErrorResponseErrorHandler;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
+import org.springframework.security.oauth2.core.http.converter.OAuth2AccessTokenResponseHttpMessageConverter;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -47,32 +54,35 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             .cors()
             .and()
             .csrf()
-            .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
             .and()
             .authorizeRequests()
-            .antMatchers("/oauth2/**",
+                .antMatchers("/oauth2/**",
                 "/login/**",
                 "/user",
                 "/items/**",
                 "/actuator/**",
                 "/public/**",
                 "/profile/**").permitAll()
-            .anyRequest().authenticated()
+                .anyRequest().authenticated()
             .and()
             .oauth2Login()
-            .userInfoEndpoint()
-            .oidcUserService(customOidcUserService)
-            .userService(customOauth2UserService)
-            .and()
-            .successHandler((httpServletRequest, httpServletResponse, authentication) -> {
-                httpServletResponse.getWriter().write("");
-            })
+                .tokenEndpoint()
+                    .accessTokenResponseClient(authorizationCodeTokenResponseClient())
+                .and()
+                .userInfoEndpoint()
+                .oidcUserService(customOidcUserService)
+                .userService(customOauth2UserService)
+                .and()
+                .successHandler((httpServletRequest, httpServletResponse, authentication) -> {
+                    httpServletResponse.getWriter().write("");
+                })
             .and()
             .rememberMe()
-            .rememberMeServices(getRememberMeServices())
+                .rememberMeServices(getRememberMeServices())
             .and()
             .exceptionHandling()
-            .defaultAuthenticationEntryPointFor(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED), new AntPathRequestMatcher("/**"))
+                .defaultAuthenticationEntryPointFor(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED), new AntPathRequestMatcher("/**"))
             .and()
             .logout(logout -> logout
                 .permitAll()
@@ -103,13 +113,19 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         return source;
     }
 
-    private OAuth2AuthorizationRequest customAuthorizationRequest(OAuth2AuthorizationRequest authorizationRequest) {
-        Map<String, Object> additionalParameters =new LinkedHashMap<>(authorizationRequest.getAdditionalParameters());
-        additionalParameters.put("access_type", "offline");
+    private OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> authorizationCodeTokenResponseClient() {
+        OAuth2AccessTokenResponseHttpMessageConverter tokenResponseHttpMessageConverter =
+            new OAuth2AccessTokenResponseHttpMessageConverter();
+        tokenResponseHttpMessageConverter.setTokenResponseConverter(new OAuth2AccessTokenResponseConverterWithDefaults());
 
-        return OAuth2AuthorizationRequest.from(authorizationRequest)
-            .additionalParameters(additionalParameters)
-            .build();
+        RestTemplate restTemplate = new RestTemplate(Arrays.asList(
+            new FormHttpMessageConverter(), tokenResponseHttpMessageConverter));
+        restTemplate.setErrorHandler(new OAuth2ErrorResponseErrorHandler());
+
+        DefaultAuthorizationCodeTokenResponseClient tokenResponseClient = new DefaultAuthorizationCodeTokenResponseClient();
+        tokenResponseClient.setRestOperations(restTemplate);
+
+        return tokenResponseClient;
     }
 }
 

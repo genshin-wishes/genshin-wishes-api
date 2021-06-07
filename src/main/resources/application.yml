@@ -50,6 +50,14 @@ spring:
                         client-id: 431139673562-0676kbn3tpab8j6dml7nbrhvhj6e0432.apps.googleusercontent.com
                         client-secret: ${GOOGLE_SECRET}
                         redirect-uri: ${app.oauth2.redirectUri}
+                    baidu:
+                        client-id: xeuziiCgxY0QzcDe6BqCIwhb
+                        client-secret: ${BAIDU_SECRET}
+                        redirect-uri: ${app.oauth2.redirectUri}
+                        authorizationGrantType: authorization_code
+                        clientAuthenticationMethod: post
+                        scope: basic
+                        provider: baidu
                     discord:
                         client-id: 777998715255259167
                         client-secret: ${DISCORD_SECRET}
@@ -62,6 +70,12 @@ spring:
                 provider:
                     facebook:
                         authorizationUri: https://www.facebook.com/v2.8/dialog/oauth?auth_type=rerequest
+                    baidu:
+                        authorizationUri: https://openapi.baidu.com/oauth/2.0/authorize
+                        tokenUri: https://openapi.baidu.com/oauth/2.0/token
+                        userInfoUri: https://openapi.baidu.com/rest/2.0/passport/users/getInfo
+                        usernameAttribute: openid
+                        userInfoAuthenticationMethod: form
                     Discord:
                         authorizationUri: https://discord.com/api/v8/oauth2/authorize
                         tokenUri: https://discord.com/api/v8/oauth2/token
