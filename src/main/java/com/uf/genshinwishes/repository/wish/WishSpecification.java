@@ -116,7 +116,11 @@ public class WishSpecification implements Specification<Wish> {
     }
 
     private Predicate getIgnoreFirstPityPredicate(Root<Wish> root, CriteriaBuilder builder) {
-        return builder.or(root.get("pity").isNull(), builder.not(builder.equal(root.get("index"), root.get("pity"))));
+        return builder.or(
+            root.get("pity").isNull(),
+            builder.not(builder.equal(root.get("index"), root.get("pity"))),
+            builder.equal(root.get("gachaType"), BannerType.NOVICE.getType())
+        );
     }
 
     private BannerDTO getBanner(Long event) {
