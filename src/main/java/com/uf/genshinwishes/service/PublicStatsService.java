@@ -49,7 +49,12 @@ public class PublicStatsService {
 
         List<BannerDTO> banners = bannerService.findAll();
         filters.setRanks(Arrays.asList(4, 5));
-        WishSpecification fourFiveSpecifications = WishSpecification.builder().bannerType(bannerType).banners(banners).filters(filters).build();
+        WishSpecification fourFiveSpecifications = WishSpecification.builder()
+            .bannerType(bannerType)
+            .banners(banners)
+            .filters(filters)
+            .ignoreFirstPity(true)
+            .build();
 
         PublicStatsDTO stats = new PublicStatsDTO();
 
@@ -81,6 +86,7 @@ public class PublicStatsService {
                     .banners(banners)
                     .bannerType(banner)
                     .filters(filter)
+                    .ignoreFirstPity(true)
                     .build();
 
                 latestEventsCountsDTO.setCount(wishRepository.count(eventSpecification.toBuilder()

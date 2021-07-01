@@ -28,6 +28,7 @@ public class WishSpecification implements Specification<Wish> {
     private List<BannerDTO> banners;
     private WishFilterDTO filters;
     private Boolean fetchBanner;
+    private Boolean ignoreFirstPity;
 
     public WishFilterDTO getFilters() {
         return filters;
@@ -53,6 +54,10 @@ public class WishSpecification implements Specification<Wish> {
             predicates.add(getRankPredicate(root));
             predicates.add(getItemTypePredicate(root, builder));
             predicates.add(getDatePredicate(root, builder));
+        }
+
+        if (ignoreFirstPity != null && ignoreFirstPity) {
+            predicates.add(getIgnoreFirstPityPredicate(root, builder));
         }
 
         return builder.and(predicates.stream().filter(predicate -> predicate != null).toArray(Predicate[]::new));
@@ -108,6 +113,10 @@ public class WishSpecification implements Specification<Wish> {
         }
 
         return null;
+    }
+
+    private Predicate getIgnoreFirstPityPredicate(Root<Wish> root, CriteriaBuilder builder) {
+        return builder.or(root.get("pity").isNull(), builder.equal(root.get("index"), root.get("pity")));
     }
 
     private BannerDTO getBanner(Long event) {
