@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.*;
@@ -42,6 +43,7 @@ public class PublicStatsService {
     }
 
     @CachePut("publicStats")
+    @Transactional(readOnly = true)
     public PublicStatsDTO updateStatsFor(BannerType bannerType, Long event) {
         WishFilterDTO filters = WishFilterDTO.builder().events(
             event != null ? Arrays.asList(event) : Collections.emptyList()
@@ -49,7 +51,12 @@ public class PublicStatsService {
 
         List<BannerDTO> banners = bannerService.findAll();
         filters.setRanks(Arrays.asList(4, 5));
-        WishSpecification fourFiveSpecifications = WishSpecification.builder().bannerType(bannerType).banners(banners).filters(filters).build();
+        WishSpecification fourFiveSpecifications = WishSpecification.builder()
+            .bannerType(bannerType)
+            .banners(banners)
+            .filters(filters)
+            .ignoreFirstPity(true)
+            .build();
 
         PublicStatsDTO stats = new PublicStatsDTO();
 
@@ -81,6 +88,7 @@ public class PublicStatsService {
                     .banners(banners)
                     .bannerType(banner)
                     .filters(filter)
+                    .ignoreFirstPity(true)
                     .build();
 
                 latestEventsCountsDTO.setCount(wishRepository.count(eventSpecification.toBuilder()
