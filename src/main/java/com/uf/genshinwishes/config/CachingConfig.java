@@ -43,7 +43,7 @@ public class CachingConfig {
         return new ConcurrentMapCacheManager("publicStats", "usersCount", "wishesCount");
     }
 
-    @Scheduled(fixedDelay = 900000, initialDelay = 0)
+    @Scheduled(fixedDelay = 12000000, initialDelay = 0)
     public void publicStatsUpdate() {
         publicStatsService.updateStatsFor(BannerType.ALL, null);
         publicStatsService.updateStatsFor(BannerType.CHARACTER_EVENT, null);
@@ -62,7 +62,7 @@ public class CachingConfig {
         loaded = true;
     }
 
-    @Scheduled(fixedDelay = 60000, initialDelay = 0)
+    @Scheduled(fixedDelay = 300000, initialDelay = 0)
     public void countersUpdate() {
         this.wishService.updateWishesCount();
         this.userService.updateUsersCount();
