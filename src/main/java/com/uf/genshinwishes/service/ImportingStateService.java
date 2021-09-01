@@ -1,6 +1,5 @@
 package com.uf.genshinwishes.service;
 
-import com.google.common.collect.Maps;
 import com.uf.genshinwishes.dto.BannerImportStateDTO;
 import com.uf.genshinwishes.dto.mapper.ImportingBannerStateMapper;
 import com.uf.genshinwishes.exception.ApiError;
@@ -64,12 +63,16 @@ public class ImportingStateService {
         importState.setBannerStates(bannerStates);
 
         if (this.getByUser(user) != null) {
-            return null;
+            try {
+                this.deleteImportStateOf(user);
+            } catch (ApiError e) {
+                return null;
+            }
         }
 
         ImportingState previousState = statesByUser.put(user, importState);
 
-        if(previousState != null) {
+        if (previousState != null) {
             statesByUser.put(user, previousState);
 
             return null;
@@ -81,10 +84,14 @@ public class ImportingStateService {
 
     public void finish(ImportingBannerState bannerState) {
         bannerState.setFinished(true);
+
+        updateState(bannerState);
     }
 
     public void markSaved(ImportingBannerState bannerState) {
         bannerState.setSaved(true);
+
+        updateState(bannerState);
     }
 
     public void markError(ImportingBannerState bannerState, ApiError error) {
@@ -100,13 +107,13 @@ public class ImportingStateService {
         updateState(bannerState);
     }
 
-    @Transactional
     public void deleteImportStateOf(User user) {
         ImportingState state = this.getByUser(user);
 
         if (state != null
             && (state.getBannerStates().stream().allMatch(s -> s.getSaved())
             || state.getBannerStates().stream().anyMatch(s -> s.getError() != null))) {
+            state.setDeleted(true);
             this.statesByUser.remove(user);
         } else {
             throw new ApiError(ErrorType.ALREADY_IMPORTING);
@@ -119,5 +126,19 @@ public class ImportingStateService {
 
     private void updateState(ImportingBannerState bannerState) {
         bannerState.getImportingState().setLastModifiedDate(Instant.now());
+
+        if (bannerState.getImportingState().getDeleted() != null && bannerState.getImportingState().getDeleted()) {
+            throw new ApiError(ErrorType.IMPORT_ERROR);
+        }
+    }
+
+    public void forceRemove(User user) {
+        ImportingState importingState = statesByUser.get(user);
+
+        if (importingState != null) {
+            importingState.setDeleted(true);
+        }
+
+        statesByUser.remove(user);
     }
 }

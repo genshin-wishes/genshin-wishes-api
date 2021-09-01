@@ -35,4 +35,6 @@ public class ImportingState implements Serializable {
     @OneToMany(cascade = {CascadeType.ALL})
     @JoinColumn(name = "importing_state_id", referencedColumnName = "id", nullable = false)
     List<ImportingBannerState> bannerStates;
+
+    private Boolean deleted;
 }

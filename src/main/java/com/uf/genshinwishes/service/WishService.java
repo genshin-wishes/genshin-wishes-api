@@ -58,7 +58,7 @@ public class WishService {
     private List<Item> items;
 
     @Transactional
-    public void importWishes(User user, String authkey,String gameBiz) {
+    public void importWishes(User user, String authkey, String gameBiz) {
         if (Strings.isNullOrEmpty(user.getMihoyoUid())) {
             throw new ApiError(ErrorType.NO_MIHOYO_LINKED);
         }
@@ -69,12 +69,18 @@ public class WishService {
             throw new ApiError(ErrorType.ALREADY_IMPORTING);
         }
 
-        MihoyoUserDTO mihoyoUser = mihoyoImRestClient.getUserInfo(Optional.of(user), authkey,gameBiz);
+        try {
+            MihoyoUserDTO mihoyoUser = mihoyoImRestClient.getUserInfo(Optional.of(user), authkey, gameBiz);
 
-        if (!user.getMihoyoUid().equals(mihoyoUser.getUser_id()))
-            throw new ApiError(ErrorType.MIHOYO_UID_DIFFERENT);
+            if (!user.getMihoyoUid().equals(mihoyoUser.getUser_id()))
+                throw new ApiError(ErrorType.MIHOYO_UID_DIFFERENT);
 
-        CompletableFuture.runAsync(() -> runImportFor(stateByBanner, user, authkey,gameBiz));
+            CompletableFuture.runAsync(() -> runImportFor(stateByBanner, user, authkey, gameBiz));
+        } catch (Exception e) {
+            importingStateService.forceRemove(user);
+
+            throw e;
+        }
     }
 
 
@@ -188,7 +194,7 @@ public class WishService {
                 importingStateService.markError(bannerState, e);
                 throw new CompletionException(e);
             } catch (Exception e) {
-                importingStateService.markError(bannerState, new ApiError(ErrorType.ERROR));
+                importingStateService.markError(bannerState, new ApiError(ErrorType.IMPORT_ERROR));
                 throw new CompletionException(e);
             }
         })).collect(Collectors.toList());
