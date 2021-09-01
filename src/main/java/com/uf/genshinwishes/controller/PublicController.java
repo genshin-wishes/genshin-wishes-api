@@ -1,19 +1,19 @@
 package com.uf.genshinwishes.controller;
 
 import com.uf.genshinwishes.dto.BannerDTO;
-import com.uf.genshinwishes.dto.PublicStatsDTO;
 import com.uf.genshinwishes.model.BannerType;
 import com.uf.genshinwishes.service.BannerService;
-import com.uf.genshinwishes.service.PublicStatsService;
 import com.uf.genshinwishes.service.UserService;
 import com.uf.genshinwishes.service.WishService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -25,8 +25,6 @@ public class PublicController {
     private WishService wishService;
     @Autowired
     private BannerService bannerService;
-    @Autowired
-    private PublicStatsService publicStatsService;
 
     @GetMapping("/languages")
     public Map<String, String> getLanguages(@RequestParam("locales") List<String> locales) {
@@ -65,9 +63,4 @@ public class PublicController {
         return this.wishService.getWishesCount();
     }
 
-    @GetMapping("/stats/{bannerType}")
-    public PublicStatsDTO getPublicStats(@PathVariable("bannerType") Optional<BannerType> bannerType,
-                                         @RequestParam Optional<Long> event) {
-        return this.publicStatsService.getStatsFor(bannerType.orElse(BannerType.ALL), event.orElse(null));
-    }
 }
