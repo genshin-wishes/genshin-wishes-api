@@ -2,10 +2,7 @@ package com.uf.genshinwishes.service;
 
 import com.google.common.collect.Maps;
 import com.uf.genshinwishes.dto.*;
-import com.uf.genshinwishes.exception.ApiError;
-import com.uf.genshinwishes.exception.ErrorType;
 import com.uf.genshinwishes.model.BannerType;
-import com.uf.genshinwishes.model.Item;
 import com.uf.genshinwishes.model.User;
 import com.uf.genshinwishes.model.Wish;
 import com.uf.genshinwishes.repository.wish.WishRepository;
@@ -21,8 +18,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.criteria.*;
 import java.time.LocalDate;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
 
 // TODO refactor (not dry at all)
 
@@ -36,10 +31,7 @@ public class PublicStatsService {
 
     @Cacheable(value = "publicStats")
     public PublicStatsDTO getStatsFor(BannerType bannerType, Long event) {
-        if (event != null && bannerService.findAll().stream().noneMatch(b -> b.getId() == event && b.getGachaType() == bannerType))
-            throw new ApiError(ErrorType.INVALID_FILTERS);
-
-        return this.updateStatsFor(bannerType, event);
+        return null;
     }
 
     @CachePut("publicStats")
