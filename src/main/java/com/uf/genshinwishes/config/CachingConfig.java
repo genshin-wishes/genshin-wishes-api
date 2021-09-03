@@ -44,9 +44,9 @@ public class CachingConfig {
         return new ConcurrentMapCacheManager("publicStats", "usersCount", "wishesCount");
     }
 
-    @Scheduled(fixedDelay = 1200000, initialDelay = 0)
+    @Scheduled(fixedDelay = 1800000, initialDelay = 0)
     public void publicStatsUpdate() {
-        Instant oldWishes = Instant.now().minus(100, ChronoUnit.DAYS);
+        Instant oldWishes = Instant.now().minus(200, ChronoUnit.DAYS);
 
         publicStatsService.updateStatsFor(BannerType.ALL, null);
         publicStatsService.updateStatsFor(BannerType.CHARACTER_EVENT, null);
