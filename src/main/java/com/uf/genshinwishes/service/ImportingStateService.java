@@ -1,5 +1,6 @@
 package com.uf.genshinwishes.service;
 
+import com.google.common.collect.Maps;
 import com.uf.genshinwishes.dto.BannerImportStateDTO;
 import com.uf.genshinwishes.dto.mapper.ImportingBannerStateMapper;
 import com.uf.genshinwishes.exception.ApiError;
@@ -20,10 +21,10 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
-@AllArgsConstructor(onConstructor = @__(@Autowired))
 public class ImportingStateService {
-    private final Map<User, ImportingState> statesByUser;
+    private final Map<User, ImportingState> statesByUser = Maps.newConcurrentMap();
 
+    @Autowired
     private ImportingBannerStateMapper bannerStateMapper;
 
     public Map<BannerType, BannerImportStateDTO> getImportingStateDtoFor(User user) {
