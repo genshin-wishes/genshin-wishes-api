@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.uf</groupId>
     <artifactId>genshin-wishes</artifactId>
-    <version>1.15.2</version>
+    <version>1.15.3</version>
     <packaging>jar</packaging>
     <name>genshin-wishes</name>
     <description></description>

@@ -55,7 +55,7 @@ public class CachingConfig {
         List<BannerDTO> banners = bannerService.findAll();
 
         banners.forEach(b -> {
-            if(loaded && b.getEnd().isBefore(LocalDateTime.ofInstant(oldWishes, ZoneId.of("UTC")))) return;
+            if(loaded && b.getEnd() != null && b.getEnd().isBefore(LocalDateTime.ofInstant(oldWishes, ZoneId.of("UTC")))) return;
 
             publicStatsService.updateStatsFor(
                 b.getGachaType(),
