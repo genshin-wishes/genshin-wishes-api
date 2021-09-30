@@ -158,8 +158,10 @@ public class WishService {
 
                 importingStateService.finish(bannerState);
 
-                AtomicReference<Long> last5Star = new AtomicReference<>(wishRepository.findMaxIndexByUserAndRankTypeAndGachaTypeAndWishIndex(user.getId(), 5, bannerType.getType(), oldCounts.getOrDefault(bannerType, 0L)));
-                AtomicReference<Long> last4Star = new AtomicReference<>(wishRepository.findMaxIndexByUserAndRankTypeAndGachaTypeAndWishIndex(user.getId(), 4, bannerType.getType(), oldCounts.getOrDefault(bannerType, 0L)));
+                LocalDateTime sixMonths = LocalDateTime.now().minusMonths(6);
+
+                AtomicReference<Long> last5Star = new AtomicReference<>(wishRepository.findLatestNonArchivedWish(user.getId(), 5, bannerType.getType(), sixMonths, oldCounts.getOrDefault(bannerType, 0L)));
+                AtomicReference<Long> last4Star = new AtomicReference<>(wishRepository.findLatestNonArchivedWish(user.getId(), 4, bannerType.getType(), sixMonths, oldCounts.getOrDefault(bannerType, 0L)));
 
                 if (last5Star.get() == null) last5Star.set(0L);
                 if (last4Star.get() == null) last4Star.set(0L);
