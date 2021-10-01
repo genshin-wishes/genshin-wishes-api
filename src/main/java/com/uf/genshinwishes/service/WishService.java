@@ -160,11 +160,10 @@ public class WishService {
 
                 LocalDateTime sixMonths = LocalDateTime.now().minusMonths(6);
 
-                AtomicReference<Long> last5Star = new AtomicReference<>(wishRepository.findLatestNonArchivedWish(user.getId(), 5, bannerType.getType(), sixMonths, oldCounts.getOrDefault(bannerType, 0L)));
-                AtomicReference<Long> last4Star = new AtomicReference<>(wishRepository.findLatestNonArchivedWish(user.getId(), 4, bannerType.getType(), sixMonths, oldCounts.getOrDefault(bannerType, 0L)));
+                AtomicReference<Long> last5StarIndex = new AtomicReference(0L);
+                AtomicReference<Long> last4StarIndex = new AtomicReference(0L);
 
-                if (last5Star.get() == null) last5Star.set(0L);
-                if (last4Star.get() == null) last4Star.set(0L);
+                calculateLatestIndexForFiveAndFourStars(user, oldCounts.getOrDefault(bannerType, 0L), bannerType, sixMonths, last5StarIndex, last4StarIndex);
 
                 // Most recent = highest ID
                 Collections.reverse(wishes);
@@ -175,12 +174,12 @@ public class WishService {
                     wish.setUser(user);
                     switch (wish.getItem().getRankType()) {
                         case 5:
-                            wish.setPity(index - last5Star.get());
-                            last5Star.set(index);
+                            wish.setPity(index - last5StarIndex.get());
+                            last5StarIndex.set(index);
                             break;
                         case 4:
-                            wish.setPity(index - last4Star.get());
-                            last4Star.set(index);
+                            wish.setPity(index - last4StarIndex.get());
+                            last4StarIndex.set(index);
                             break;
                     }
                     wish.setImportDate(now);
@@ -219,6 +218,25 @@ public class WishService {
 
                 return null;
             });
+    }
+
+    private void calculateLatestIndexForFiveAndFourStars(User user, Long lastIndex, BannerType bannerType, LocalDateTime sixMonths, AtomicReference<Long> last5StarIndex, AtomicReference<Long> last4StarIndex) {
+        Optional<Wish> last5Star = wishRepository.findByUserAndRankTypeAndGachaTypeAndWishIndex(user.getId(), 5, bannerType.getType(), lastIndex);
+        Optional<Wish> last4Star = wishRepository.findByUserAndRankTypeAndGachaTypeAndWishIndex(user.getId(), 4, bannerType.getType(), lastIndex);
+
+        if (last5Star.isPresent()) {
+            if(last5Star.get().getTime().isBefore(sixMonths))
+                last5StarIndex.set(lastIndex);
+            else
+                last5StarIndex.set(last5Star.get().getIndex());
+        }
+
+        if (last4Star.isPresent()) {
+            if(last4Star.get().getTime().isBefore(sixMonths))
+                last4StarIndex.set(lastIndex);
+            else
+                last4StarIndex.set(last4Star.get().getIndex());
+        }
     }
 
     private List<MihoyoWishLogDTO> getWishesForPage(String authkey, String gameBiz, BannerType bannerType, String lastWishId, Integer page) {
