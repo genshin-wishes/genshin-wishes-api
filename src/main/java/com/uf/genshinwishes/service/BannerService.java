@@ -37,6 +37,10 @@ public class BannerService {
         return bannerRepository.findAll().stream().map(bannerMapper::toDto).collect(Collectors.toList());
     }
 
+    public List<BannerDTO> findAllOrderByStartDateDesc() {
+        return bannerRepository.findAllByOrderByStartDesc().stream().map(bannerMapper::toDto).collect(Collectors.toList());
+    }
+
     public List<BannerDTO> findAllForUser(User user) {
         return bannerRepository.findAll().stream().map(b -> bannerMapper.toDto(user, b)).collect(Collectors.toList());
     }

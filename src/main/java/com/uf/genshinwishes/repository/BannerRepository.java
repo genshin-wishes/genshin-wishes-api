@@ -12,5 +12,7 @@ public interface BannerRepository extends JpaRepository<Banner, Long> {
 
     List<Banner> findAllByGachaTypeOrderByStartDesc(Integer gachaType);
 
+    List<Banner> findAllByOrderByStartDesc();
+
     Banner findFirstByGachaTypeOrderByEndDesc(Integer gachaType);
 }

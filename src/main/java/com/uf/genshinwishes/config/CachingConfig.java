@@ -58,7 +58,7 @@ public class CachingConfig {
         publicStatsService.updateStatsFor(BannerType.WEAPON_EVENT, null);
         logger.info("Updated WEAPON");
 
-        List<BannerDTO> banners = bannerService.findAll();
+        List<BannerDTO> banners = bannerService.findAllOrderByStartDateDesc();
 
         banners.forEach(b -> {
             if(loaded && b.getEnd() != null && b.getEnd().isBefore(LocalDateTime.ofInstant(oldWishes, ZoneId.of("UTC")))) {
