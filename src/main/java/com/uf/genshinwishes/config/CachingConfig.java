@@ -7,6 +7,8 @@ import com.uf.genshinwishes.service.PublicStatsService;
 import com.uf.genshinwishes.service.UserService;
 import com.uf.genshinwishes.service.WishService;
 import lombok.Getter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
@@ -26,6 +28,7 @@ import java.util.List;
 @EnableScheduling
 @Configuration
 public class CachingConfig {
+    Logger logger = LoggerFactory.getLogger(CachingConfig.class);
 
     @Autowired
     private PublicStatsService publicStatsService;
@@ -49,19 +52,26 @@ public class CachingConfig {
         Instant oldWishes = Instant.now().minus(200, ChronoUnit.DAYS);
 
         publicStatsService.updateStatsFor(BannerType.ALL, null);
+        logger.info("Updated ALL");
         publicStatsService.updateStatsFor(BannerType.CHARACTER_EVENT, null);
+        logger.info("Updated CHARACTER");
         publicStatsService.updateStatsFor(BannerType.WEAPON_EVENT, null);
+        logger.info("Updated WEAPON");
 
         List<BannerDTO> banners = bannerService.findAll();
 
         banners.forEach(b -> {
-            if(loaded && b.getEnd() != null && b.getEnd().isBefore(LocalDateTime.ofInstant(oldWishes, ZoneId.of("UTC")))) return;
+            if(loaded && b.getEnd() != null && b.getEnd().isBefore(LocalDateTime.ofInstant(oldWishes, ZoneId.of("UTC")))) {
+                return;
+            }
 
             publicStatsService.updateStatsFor(
                 b.getGachaType(),
                 b.getGachaType() == BannerType.CHARACTER_EVENT || b.getGachaType() == BannerType.WEAPON_EVENT
                     ? b.getId()
                     : null);
+
+            logger.info("Updated " + b.getGachaType() + " / " + b.getVersion());
         });
 
         loaded = true;
@@ -70,6 +80,8 @@ public class CachingConfig {
     @Scheduled(fixedDelay = 300000, initialDelay = 0)
     public void countersUpdate() {
         this.wishService.updateWishesCount();
+        logger.info("Updated wishes");
         this.userService.updateUsersCount();
+        logger.info("Updated users");
     }
 }
