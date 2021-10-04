@@ -86,4 +86,4 @@ logging:
     level:
         root: ERROR
         org.springframework.web: ERROR
-        com.uf: ERROR
+        com.uf: INFO

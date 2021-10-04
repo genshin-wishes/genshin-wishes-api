@@ -222,18 +222,18 @@ public class WishService {
     private void calculateLatestIndexForFiveAndFourStars(User user, Long lastIndex, BannerType bannerType, AtomicReference<Long> last5StarIndex, AtomicReference<Long> last4StarIndex) {
         Optional<Wish> last5Star = wishRepository.findByUserAndRankTypeAndGachaTypeAndWishIndex(user.getId(), 5, bannerType.getType(), lastIndex);
         Optional<Wish> last4Star = wishRepository.findByUserAndRankTypeAndGachaTypeAndWishIndex(user.getId(), 4, bannerType.getType(), lastIndex);
-        Optional<Wish> firstNonArchived = wishRepository.findFirstNonArchived(user.getId(), bannerType.getType(), BannerMapper.computeArchiveDate(Region.getFromUser(user)));
+        Optional<Wish> firstNonArchived = wishRepository.findFirstNonArchived(user.getId(), bannerType.getType(), BannerMapper.computeImportArchiveDate(), BannerMapper.computeArchiveDate(Region.getFromUser(user)));
         Long firstNonArchivedIndex = firstNonArchived.map(Wish::getIndex).orElse(lastIndex);
 
         if (last5Star.isPresent()) {
-            if(last5Star.get().isArchived())
+            if(last5Star.get().isBeforeArchive())
                 last5StarIndex.set(firstNonArchivedIndex);
             else
                 last5StarIndex.set(last5Star.get().getIndex());
         }
 
         if (last4Star.isPresent()) {
-            if(last4Star.get().isArchived())
+            if(last4Star.get().isBeforeArchive())
                 last4StarIndex.set(firstNonArchivedIndex);
             else
                 last4StarIndex.set(last4Star.get().getIndex());

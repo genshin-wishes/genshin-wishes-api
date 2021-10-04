@@ -9,6 +9,10 @@ import lombok.Setter;
 import javax.persistence.*;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 
 @Getter
 @Setter
@@ -43,7 +47,9 @@ public class Wish {
     @Column
     private Instant importDate;
 
-    public boolean isArchived() {
-        return this.getTime().isBefore(BannerMapper.computeArchiveDate(Region.getFromUser(user)));
+    public boolean isBeforeArchive() {
+        return this.getImportDate() != null
+            ? this.getImportDate().isBefore(BannerMapper.computeImportArchiveDate())
+            : this.getTime().isBefore(BannerMapper.computeArchiveDate(Region.getFromUser(user)));
     }
 }
