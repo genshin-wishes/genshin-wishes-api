@@ -1,5 +1,6 @@
 package com.uf.genshinwishes.model;
 
+import com.uf.genshinwishes.dto.mapper.BannerMapper;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -41,4 +42,8 @@ public class Wish {
 
     @Column
     private Instant importDate;
+
+    public boolean isArchived() {
+        return this.getTime().isBefore(BannerMapper.computeArchiveDate(Region.getFromUser(user)));
+    }
 }

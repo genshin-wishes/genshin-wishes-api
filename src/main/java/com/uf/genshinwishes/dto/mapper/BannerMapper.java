@@ -47,13 +47,20 @@ public class BannerMapper {
 
                 bannerDTO.setStart(startEndByRegion.get(region)[0]);
                 bannerDTO.setEnd(startEndByRegion.get(region)[1]);
+            } else {
+                bannerDTO.setStart(banner.getStart());
+                bannerDTO.setEnd(banner.getEnd());
             }
         }
 
         return bannerDTO;
     }
 
-    private LocalDateTime computeDate(Region region, LocalDateTime date, Boolean isLocale) {
+    public static LocalDateTime computeDate(Region region, LocalDateTime date, Boolean isLocale) {
         return isLocale != null && isLocale ? date : date.minusHours(UserService.getRegionOffset(region));
+    }
+
+    public static LocalDateTime computeArchiveDate(Region region) {
+        return BannerMapper.computeDate(region, LocalDateTime.now().minusMonths(6), false);
     }
 }

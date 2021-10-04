@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.PagingAndSortingRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,6 +30,15 @@ public interface WishRepository extends PagingAndSortingRepository<Wish, Long>, 
         ) and w.user_id = :userId and w.gacha_type = :gachaType
         """, nativeQuery = true)
     Optional<Wish> findByUserAndRankTypeAndGachaTypeAndWishIndex(Long userId, Integer rankType, Integer gachaType, Long wishIndex);
+
+    @Query(value = """
+        select w.* from wishes w
+        where w.index = (
+            select min(w2.index) from wishes w2
+                where w2.time >= :archiveDate and w2.user_id = :userId and w2.gacha_type = :gachaType
+        ) and w.user_id = :userId and w.gacha_type = :gachaType
+        """, nativeQuery = true)
+    Optional<Wish> findFirstNonArchived(Long userId, Integer gachaType, LocalDateTime archiveDate);
 
     List<Wish> findByUserOrderByGachaTypeAscIndexAsc(User user);
 }

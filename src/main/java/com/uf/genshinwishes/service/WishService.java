@@ -7,6 +7,7 @@ import com.google.common.collect.MultimapBuilder;
 import com.uf.genshinwishes.dto.BannerDTO;
 import com.uf.genshinwishes.dto.WishDTO;
 import com.uf.genshinwishes.dto.WishFilterDTO;
+import com.uf.genshinwishes.dto.mapper.BannerMapper;
 import com.uf.genshinwishes.dto.mapper.WishMapper;
 import com.uf.genshinwishes.dto.mihoyo.MihoyoUserDTO;
 import com.uf.genshinwishes.dto.mihoyo.MihoyoWishLogDTO;
@@ -158,12 +159,10 @@ public class WishService {
 
                 importingStateService.finish(bannerState);
 
-                LocalDateTime sixMonths = LocalDateTime.now().minusMonths(6);
-
                 AtomicReference<Long> last5StarIndex = new AtomicReference(0L);
                 AtomicReference<Long> last4StarIndex = new AtomicReference(0L);
 
-                calculateLatestIndexForFiveAndFourStars(user, oldCounts.getOrDefault(bannerType, 0L), bannerType, sixMonths, last5StarIndex, last4StarIndex);
+                calculateLatestIndexForFiveAndFourStars(user, oldCounts.getOrDefault(bannerType, 0L), bannerType, last5StarIndex, last4StarIndex);
 
                 // Most recent = highest ID
                 Collections.reverse(wishes);
@@ -220,20 +219,22 @@ public class WishService {
             });
     }
 
-    private void calculateLatestIndexForFiveAndFourStars(User user, Long lastIndex, BannerType bannerType, LocalDateTime sixMonths, AtomicReference<Long> last5StarIndex, AtomicReference<Long> last4StarIndex) {
+    private void calculateLatestIndexForFiveAndFourStars(User user, Long lastIndex, BannerType bannerType, AtomicReference<Long> last5StarIndex, AtomicReference<Long> last4StarIndex) {
         Optional<Wish> last5Star = wishRepository.findByUserAndRankTypeAndGachaTypeAndWishIndex(user.getId(), 5, bannerType.getType(), lastIndex);
         Optional<Wish> last4Star = wishRepository.findByUserAndRankTypeAndGachaTypeAndWishIndex(user.getId(), 4, bannerType.getType(), lastIndex);
+        Optional<Wish> firstNonArchived = wishRepository.findFirstNonArchived(user.getId(), bannerType.getType(), BannerMapper.computeArchiveDate(Region.getFromUser(user)));
+        Long firstNonArchivedIndex = firstNonArchived.map(Wish::getIndex).orElse(lastIndex);
 
         if (last5Star.isPresent()) {
-            if(last5Star.get().getTime().isBefore(sixMonths))
-                last5StarIndex.set(lastIndex);
+            if(last5Star.get().isArchived())
+                last5StarIndex.set(firstNonArchivedIndex);
             else
                 last5StarIndex.set(last5Star.get().getIndex());
         }
 
         if (last4Star.isPresent()) {
-            if(last4Star.get().getTime().isBefore(sixMonths))
-                last4StarIndex.set(lastIndex);
+            if(last4Star.get().isArchived())
+                last4StarIndex.set(firstNonArchivedIndex);
             else
                 last4StarIndex.set(last4Star.get().getIndex());
         }
