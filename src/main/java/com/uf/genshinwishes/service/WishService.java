@@ -132,7 +132,7 @@ public class WishService {
 
     @Cacheable("wishesCount")
     public Long getWishesCount() {
-        return this.updateWishesCount();
+        return null;
     }
 
     @CachePut("wishesCount")

@@ -150,7 +150,7 @@ public class UserService {
 
     @Cacheable("usersCount")
     public Long getUsersCount() {
-        return this.updateUsersCount();
+        return null;
     }
 
     @CachePut("usersCount")
