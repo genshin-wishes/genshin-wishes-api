@@ -4,6 +4,7 @@ import com.uf.genshinwishes.dto.WishDTO;
 import com.uf.genshinwishes.dto.mihoyo.MihoyoWishLogDTO;
 import com.uf.genshinwishes.exception.ApiError;
 import com.uf.genshinwishes.exception.ErrorType;
+import com.uf.genshinwishes.model.BannerType;
 import com.uf.genshinwishes.model.Item;
 import com.uf.genshinwishes.model.Wish;
 import org.springframework.stereotype.Component;
@@ -21,6 +22,7 @@ public class WishMapper {
 
         wishDTO.setTime(wish.getTime());
         wishDTO.setGachaType(wish.getGachaType());
+        wishDTO.setSecond(wish.getSecond());
         wishDTO.setIndex(wish.getIndex());
         wishDTO.setPity(wish.getPity());
 
@@ -45,7 +47,9 @@ public class WishMapper {
 
         wish.setItem(item);
 
-        wish.setGachaType(mihoyoWish.getGacha_type());
+        Integer gachaType = mihoyoWish.getGacha_type();
+        wish.setGachaType(gachaType == 400 ? BannerType.CHARACTER_EVENT.getType() : gachaType); // FIXME dirty fix
+        wish.setSecond(gachaType == 400);
         wish.setTime(
             LocalDateTime.from(
                 DateTimeFormatter.ISO_LOCAL_DATE_TIME.parse(

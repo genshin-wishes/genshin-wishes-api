@@ -37,6 +37,9 @@ public class Wish {
     @Column(nullable = false)
     private Integer gachaType;
 
+    @Column(nullable = false)
+    private Boolean second;
+
     @ManyToOne
     @JoinColumn(name = "item_id", referencedColumnName = "item_id")
     private Item item;

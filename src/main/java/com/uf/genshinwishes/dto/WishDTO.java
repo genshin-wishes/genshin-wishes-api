@@ -15,6 +15,7 @@ public class WishDTO {
     private Long index;
     private Long pity;
     private Integer gachaType;
+    private Boolean second;
     private Long itemId;
     private LocalDateTime time;
 }
