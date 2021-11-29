@@ -37,7 +37,7 @@ public class Wish {
     @Column(nullable = false)
     private Integer gachaType;
 
-    @Column(nullable = false)
+    @Column
     private Boolean second;
 
     @ManyToOne
