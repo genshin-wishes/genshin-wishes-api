@@ -34,6 +34,8 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -151,6 +153,7 @@ public class WishService {
 
         List<Wish> cumulatedWishes = Lists.newArrayList();
 
+        ExecutorService es = Executors.newSingleThreadExecutor();
         List<CompletableFuture<Void>> futures = BannerType.getBannersExceptAll().map(bannerType -> CompletableFuture.runAsync(() -> {
             ImportingBannerState bannerState = stateByGachaType.get(bannerType.getType());
 
@@ -197,7 +200,7 @@ public class WishService {
                 importingStateService.markError(bannerState, new ApiError(ErrorType.IMPORT_ERROR));
                 throw new CompletionException(e);
             }
-        })).collect(Collectors.toList());
+        }, es)).collect(Collectors.toList());
 
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[]{}))
             .thenApply(ignored -> futures.stream()
