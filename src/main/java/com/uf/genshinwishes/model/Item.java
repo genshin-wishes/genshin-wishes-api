@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.NaturalId;
 import org.hibernate.annotations.Where;
+import org.hibernate.annotations.WhereJoinTable;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -39,5 +40,6 @@ public class Item implements Serializable {
         name = "upload_file_morph",
         joinColumns = @JoinColumn(name = "related_id"),
         inverseJoinColumns = @JoinColumn(name = "upload_file_id"))
+    @WhereJoinTable(clause = "related_type = 'items'")
     private Image image;
 }
