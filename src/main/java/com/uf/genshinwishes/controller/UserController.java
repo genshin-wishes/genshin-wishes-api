@@ -20,20 +20,6 @@ public class UserController {
         return userMapper.toDto(user);
     }
 
-    @GetMapping("/link")
-    public UserDTO linkMihoyoAccount(User user, @RequestParam("authkey") String authkey, @RequestParam("game_biz") String gameBiz) {
-        userService.verifyUserIsUnlinkedAndLinkToMihoyo(user, authkey, gameBiz);
-
-        return userMapper.toDto(user);
-    }
-
-    @PostMapping("/linkNew")
-    public UserDTO linkNewMihoyoAccountAndDeleteOldWishes(User user, @RequestBody() String authkey, @RequestParam String gameBiz) {
-        userService.linkNewMihoyoAccountAndDeleteOldWishes(user, authkey, gameBiz);
-
-        return userMapper.toDto(user);
-    }
-
     @PatchMapping("/share")
     public String share(User user) {
         String profileId = user.getProfileId();

@@ -1,12 +1,10 @@
 package com.uf.genshinwishes.service;
 
-import com.uf.genshinwishes.dto.mihoyo.MihoyoUserDTO;
 import com.uf.genshinwishes.exception.ApiError;
 import com.uf.genshinwishes.exception.ErrorType;
 import com.uf.genshinwishes.model.Region;
 import com.uf.genshinwishes.model.User;
 import com.uf.genshinwishes.repository.UserRepository;
-import com.uf.genshinwishes.service.mihoyo.MihoyoImRestClient;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,13 +12,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigInteger;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Locale;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -28,7 +24,6 @@ import java.util.UUID;
 public class UserService {
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
-    private MihoyoImRestClient mihoyoImRestClient;
     private UserRepository userRepository;
     private WishService wishService;
 
@@ -67,47 +62,6 @@ public class UserService {
         user.setKey(UUID.randomUUID().toString());
 
         userRepository.save(user);
-    }
-
-    @Transactional
-    public void verifyUserIsUnlinkedAndLinkToMihoyo(User user, String authkey, String gameBiz) throws ApiError {
-        if (user.getMihoyoUid() != null) {
-            return; // already linked so we ignore
-        }
-
-        linkToMihoyo(user, authkey, gameBiz);
-    }
-
-    private void linkToMihoyo(User user, String authkey, String gameBiz) {
-        MihoyoUserDTO mihoyoUser = mihoyoImRestClient.getUserInfo(Optional.empty(), authkey, gameBiz);
-
-        char region = mihoyoUser.getUser_id().charAt(0);
-        switch (region) {
-            case '6':
-                user.setRegion(Region.AMERICA.getPrefix());
-                break;
-            case '7':
-                user.setRegion(Region.EUROPE.getPrefix());
-                break;
-            default:
-            case '1':
-            case '8':
-                user.setRegion(Region.ASIA.getPrefix());
-                break;
-        }
-
-        user.setMihoyoUid(mihoyoUser.getUser_id());
-        user.setMihoyoUsername(mihoyoUser.getNickname());
-
-        userRepository.save(user);
-    }
-
-
-    @Transactional
-    public void linkNewMihoyoAccountAndDeleteOldWishes(User user, String authkey, String gameBiz) throws ApiError {
-        this.linkToMihoyo(user, authkey, gameBiz);
-
-        wishService.deleteAllUserWishes(user);
     }
 
     public void deleteUser(User user) {

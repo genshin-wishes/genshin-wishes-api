@@ -1,6 +1,5 @@
 package com.uf.genshinwishes.controller;
 
-import com.uf.genshinwishes.dto.BannerImportStateDTO;
 import com.uf.genshinwishes.dto.ItemType;
 import com.uf.genshinwishes.dto.WishDTO;
 import com.uf.genshinwishes.dto.WishFilterDTO;
@@ -8,7 +7,6 @@ import com.uf.genshinwishes.model.BannerType;
 import com.uf.genshinwishes.model.User;
 import com.uf.genshinwishes.model.Wish;
 import com.uf.genshinwishes.service.CSVHelper;
-import com.uf.genshinwishes.service.ImportingStateService;
 import com.uf.genshinwishes.service.WishService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,8 +29,6 @@ public class WishController {
 
     @Autowired
     private WishService wishService;
-    @Autowired
-    private ImportingStateService importingStateService;
     @Autowired
     private MessageSource messageSource;
 
@@ -84,21 +80,6 @@ public class WishController {
     @GetMapping("/count")
     public Map<BannerType, Long> countWishes(User user) {
         return wishService.countAllByUser(user);
-    }
-
-    @GetMapping("/importState")
-    public Map<BannerType, BannerImportStateDTO> getImportState(User user) {
-        return importingStateService.getImportingStateDtoFor(user);
-    }
-
-    @DeleteMapping("/importState")
-    public void deleteImportState(User user) {
-        importingStateService.deleteImportStateOf(user);
-    }
-
-    @GetMapping("/import")
-    public void importWishes(User user, @RequestParam("authkey") String authkey, @RequestParam("game_biz") String gameBiz) {
-        wishService.importWishes(user, authkey, gameBiz);
     }
 
     @GetMapping("/export")
